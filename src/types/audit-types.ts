@@ -81,6 +81,7 @@ export interface FactTriple {
   confidence: number;
   sourceText: string;
   type: 'numeric' | 'categorical' | 'comparative' | 'temporal';
+  evidence?: import('./common-types.js').EvidencePointer;
 }
 
 export interface EnhancedAuditResult extends AuditResult {

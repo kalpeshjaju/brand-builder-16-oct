@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Audit Scoring Arithmetic > Score calculation determinism > should generate actionable recommendations 1`] = `3`;
+
+exports[`Audit Scoring Arithmetic > Score calculation determinism > should produce consistent findings structure 1`] = `2`;
+
+exports[`Audit Scoring Arithmetic > Score calculation determinism > should produce identical scores for identical strategy (snapshot) 1`] = `
+{
+  "crossVerification": 6,
+  "dataRecency": 7,
+  "factVerification": 5,
+  "overallScore": 6.4,
+  "productionReadiness": 10,
+  "sourceQuality": 2,
+}
+`;

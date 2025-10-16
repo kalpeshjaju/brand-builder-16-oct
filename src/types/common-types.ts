@@ -54,3 +54,28 @@ export interface ValidationResult {
   warnings: string[];
   confidence?: ConfidenceLevel;
 }
+
+// LLM Generation Metadata (for audit trail and reproducibility)
+export interface LLMMetadata {
+  model: string;
+  modelVersion: string;
+  promptId?: string;
+  promptTextHash: string;
+  temperature: number;
+  seed?: number;
+  runId: string;
+  timestamp: string;
+  provider: 'anthropic' | 'openai';
+}
+
+// Evidence Provenance (for fact verification and audit defense)
+export interface EvidencePointer {
+  sourceFile?: string;
+  sourceUrl?: string;
+  sha256: string;
+  snippet: string;
+  startOffset?: number;
+  endOffset?: number;
+  retrievedAt: string;
+  snapshotPath?: string;
+}
