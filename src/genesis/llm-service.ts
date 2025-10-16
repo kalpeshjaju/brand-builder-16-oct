@@ -2,6 +2,7 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash, randomUUID } from 'crypto';
+import pRetry from 'p-retry';
 import type { LLMConfig, LLMMetadata } from '../types/index.js';
 import type { PromptRenderContext } from '../types/prompt-types.js';
 import { Logger } from '../utils/index.js';
@@ -67,7 +68,7 @@ export class LLMService {
   }
 
   /**
-   * Send a prompt and get a response with metadata
+   * Send a prompt and get a response with metadata (with retry logic)
    */
   async promptWithMetadata(
     userMessage: string,
@@ -79,17 +80,41 @@ export class LLMService {
     const metadata = this.generateMetadata(fullPrompt, options || {});
 
     try {
-      const messages: Anthropic.MessageParam[] = [
-        { role: 'user', content: userMessage },
-      ];
+      // Retry with exponential backoff
+      const response = await pRetry(
+        async () => {
+          const messages: Anthropic.MessageParam[] = [
+            { role: 'user', content: userMessage },
+          ];
 
-      const response = await this.client.messages.create({
-        model: options?.model || this.config.model,
-        max_tokens: options?.maxTokens || this.config.maxTokens,
-        temperature: options?.temperature ?? this.config.temperature,
-        system: systemPrompt,
-        messages,
-      });
+          const apiResponse = await this.client.messages.create({
+            model: options?.model || this.config.model,
+            max_tokens: options?.maxTokens || this.config.maxTokens,
+            temperature: options?.temperature ?? this.config.temperature,
+            system: systemPrompt,
+            messages,
+          });
+
+          const content = apiResponse.content[0];
+          if (content?.type !== 'text') {
+            throw new Error('Unexpected response format from Claude API');
+          }
+
+          return content.text;
+        },
+        {
+          retries: 3,
+          minTimeout: 1000,
+          maxTimeout: 5000,
+          onFailedAttempt: (error) => {
+            logger.warn(`LLM request attempt ${error.attemptNumber} failed`, {
+              runId: metadata.runId,
+              retriesLeft: error.retriesLeft,
+              error: String(error),
+            });
+          },
+        }
+      );
 
       const duration = Date.now() - startTime;
       logger.debug('LLM response received', {
@@ -97,62 +122,27 @@ export class LLMService {
         runId: metadata.runId
       });
 
-      const content = response.content[0];
-      if (content?.type === 'text') {
-        return { content: content.text, metadata };
-      }
-
-      throw new Error('Unexpected response format from Claude API');
+      return { content: response, metadata };
     } catch (error) {
-      logger.error('LLM request failed', { runId: metadata.runId, error });
+      logger.error('LLM request failed after retries', { runId: metadata.runId, error });
       throw new Error(
-        `Failed to get LLM response\n` +
+        `Failed to get LLM response after 3 retries\n` +
         `Reason: ${(error as Error).message}\n` +
-        `Fix: Check your API key and network connection.`
+        `Fix: Check your API key, network connection, and API quota.`
       );
     }
   }
 
   /**
-   * Send a prompt and get a response (legacy, returns string only)
+   * Send a prompt and get a response (with retry logic)
    */
   async prompt(
     userMessage: string,
     systemPrompt?: string,
     options?: Partial<LLMConfig>
   ): Promise<string> {
-    const startTime = Date.now();
-
-    try {
-      const messages: Anthropic.MessageParam[] = [
-        { role: 'user', content: userMessage },
-      ];
-
-      const response = await this.client.messages.create({
-        model: options?.model || this.config.model,
-        max_tokens: options?.maxTokens || this.config.maxTokens,
-        temperature: options?.temperature ?? this.config.temperature,
-        system: systemPrompt,
-        messages,
-      });
-
-      const duration = Date.now() - startTime;
-      logger.debug('LLM response received', { duration: `${duration}ms` });
-
-      const content = response.content[0];
-      if (content?.type === 'text') {
-        return content.text;
-      }
-
-      throw new Error('Unexpected response format from Claude API');
-    } catch (error) {
-      logger.error('LLM request failed', error);
-      throw new Error(
-        `Failed to get LLM response\n` +
-        `Reason: ${(error as Error).message}\n` +
-        `Fix: Check your API key and network connection.`
-      );
-    }
+    const response = await this.promptWithMetadata(userMessage, systemPrompt, options);
+    return response.content;
   }
 
   /**

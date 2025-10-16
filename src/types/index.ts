@@ -29,3 +29,6 @@ export * from './daemon-types.js';
 
 // CLI types
 export * from './cli-types.js';
+
+// Evolution workshop types
+export * from './evolution-types.js';

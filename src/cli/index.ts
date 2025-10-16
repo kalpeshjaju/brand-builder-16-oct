@@ -10,6 +10,7 @@ import { generateCommand } from './commands/generate.js';
 import { auditCommand } from './commands/audit.js';
 import { contextCommand } from './commands/context.js';
 import { ingestCommand } from './commands/ingest.js';
+import { evolveCommand } from './commands/evolve.js';
 import {
   listPromptsCommand,
   showPromptCommand,
@@ -98,6 +99,9 @@ program
   .option('--extract', 'Extract facts', true)
   .option('--index', 'Create index', true)
   .action(ingestCommand);
+
+// Evolve command (Brand Evolution Workshop)
+program.addCommand(evolveCommand);
 
 // Prompts command group
 const promptsCmd = program
