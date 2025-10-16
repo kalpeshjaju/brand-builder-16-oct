@@ -1,0 +1,66 @@
+{
+  "id": "positioning",
+  "name": "Brand Positioning Statement",
+  "description": "Crafts a clear, differentiated positioning statement and supporting positioning strategy",
+  "category": "generation",
+  "version": "1.0.0",
+  "systemPrompt": "You are an expert brand strategist specializing in positioning and differentiation. You excel at distilling complex brand attributes into clear, compelling positioning statements that guide all marketing and communication.\n\nYour approach:\n- Target audience clarity\n- Frame of reference (category)\n- Point of difference (unique benefit)\n- Reason to believe (credible support)\n- Simple, memorable, ownable\n\nYou create positioning that is strategically sound and emotionally resonant.",
+  "userPromptTemplate": "Develop brand positioning for {{brandName}} in the {{industry}} market.\n\n**Brand Overview:**\n{{brandOverview}}\n\n**Target Audience:**\n{{targetAudience}}\n\n**Key Differentiators:**\n{{differentiators}}\n\n**Competitive Context:**\n{{competitiveContext}}\n\n**Proof Points:**\n{{proofPoints}}\n\nCreate a comprehensive positioning strategy including:\n\n1. **Positioning Statement** - Using the format:\n   \"For [target audience] who [need/opportunity], [brand] is the [frame of reference] that [point of difference] because [reason to believe].\"\n\n2. **Target Audience Definition** - Who we're positioning for\n\n3. **Frame of Reference** - Category/competitive set\n\n4. **Point of Difference** - Unique benefit or value\n\n5. **Reason to Believe** - Why it's credible\n\n6. **Brand Character** - Personality that supports positioning\n\n7. **Positioning Pillars** - 3-4 key themes that support positioning\n\n8. **Messaging Hierarchy**\n   - Primary message\n   - Supporting messages (3-5)\n   - Proof points for each\n\n9. **Positioning Guidelines** - Do's and don'ts for applying positioning\n\n10. **Differentiation Map** - How we compare to competitors on key dimensions\n\nFormat as structured JSON. Ensure positioning is ownable, differentiated, and credible based on evidence.",
+  "temperature": 0.0,
+  "maxTokens": 4000,
+  "seed": 42,
+  "tags": ["positioning", "differentiation", "messaging"],
+  "author": "Brand Builder Pro",
+  "changelog": ["Initial version - positioning statement and strategy"],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "Name of the brand",
+      "required": true,
+      "type": "string",
+      "example": "Acme Corp"
+    },
+    {
+      "name": "industry",
+      "description": "Industry or category",
+      "required": true,
+      "type": "string",
+      "example": "Plant-Based Nutrition"
+    },
+    {
+      "name": "brandOverview",
+      "description": "What the brand does, key attributes",
+      "required": true,
+      "type": "string",
+      "example": "Premium plant-based protein supplements for athletes, focus on clean ingredients and performance"
+    },
+    {
+      "name": "targetAudience",
+      "description": "Primary target audience",
+      "required": true,
+      "type": "string",
+      "example": "Serious athletes and fitness enthusiasts who prioritize clean nutrition and sustainability"
+    },
+    {
+      "name": "differentiators",
+      "description": "What makes this brand unique",
+      "required": true,
+      "type": "string",
+      "example": "Only brand with 100% organic ingredients, scientifically proven performance, zero artificial additives"
+    },
+    {
+      "name": "competitiveContext",
+      "description": "Key competitors and their positions",
+      "required": false,
+      "type": "string",
+      "example": "Competitor A owns 'taste', Competitor B owns 'price', we can own 'performance + purity'"
+    },
+    {
+      "name": "proofPoints",
+      "description": "Evidence supporting our differentiation",
+      "required": false,
+      "type": "string",
+      "example": "USDA Organic certified, 15 clinical studies, used by 200+ pro athletes, rated #1 by Clean Label Project"
+    }
+  ]
+}

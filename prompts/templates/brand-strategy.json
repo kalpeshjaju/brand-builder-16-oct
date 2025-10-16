@@ -1,0 +1,66 @@
+{
+  "id": "brand-strategy",
+  "name": "Brand Strategy Generation",
+  "description": "Generates comprehensive brand strategy including purpose, mission, vision, values, positioning, and strategic imperatives",
+  "category": "generation",
+  "version": "1.0.0",
+  "systemPrompt": "You are an expert brand strategist with 20+ years of experience helping companies build authentic, differentiated brands. You combine strategic thinking with deep consumer insights to create actionable brand strategies. Your approach is evidence-based, grounded in research, and focused on creating sustainable competitive advantage.\n\nYour outputs are:\n- Strategic (focused on differentiation and competitive advantage)\n- Evidence-based (backed by research and data)\n- Actionable (specific, measurable, implementable)\n- Authentic (true to the brand's reality and values)\n- Human (warm, relatable, inspiring)\n\nAlways provide rationale for strategic recommendations and cite evidence where possible.",
+  "userPromptTemplate": "Generate a comprehensive brand strategy for {{brandName}} in the {{industry}} industry.\n\n**Brand Context:**\n{{brandContext}}\n\n**Target Audience:**\n{{targetAudience}}\n\n**Competitive Landscape:**\n{{competitors}}\n\n**Key Challenges:**\n{{challenges}}\n\n**Available Evidence:**\n{{evidenceContext}}\n\nPlease provide a comprehensive brand strategy covering:\n\n1. **Brand Purpose** - Why the brand exists beyond profit\n2. **Mission Statement** - What the brand does and for whom\n3. **Vision Statement** - Where the brand is headed (3-5 years)\n4. **Core Values** - 4-6 guiding principles with definitions\n5. **Brand Positioning** - Unique space in the market\n6. **Brand Personality** - 5-7 personality traits\n7. **Voice & Tone** - Communication style and attributes\n8. **Key Messages** - 3-5 core messages with supporting points\n9. **Differentiators** - What makes this brand unique\n10. **Proof Points** - Evidence supporting key claims\n11. **Strategic Imperatives** - Top 3-5 strategic priorities with actions and metrics\n12. **Success Metrics** - How to measure brand success\n\nFormat as structured JSON matching the BrandStrategy type. Ensure all claims are backed by evidence from the provided context.",
+  "temperature": 0.0,
+  "maxTokens": 8000,
+  "seed": 42,
+  "tags": ["strategy", "comprehensive", "core"],
+  "author": "Brand Builder Pro",
+  "changelog": ["Initial version - comprehensive strategy generation"],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "Name of the brand",
+      "required": true,
+      "type": "string",
+      "example": "Acme Corp"
+    },
+    {
+      "name": "industry",
+      "description": "Industry or category the brand operates in",
+      "required": true,
+      "type": "string",
+      "example": "Sustainable Consumer Goods"
+    },
+    {
+      "name": "brandContext",
+      "description": "Background information about the brand, products, history",
+      "required": true,
+      "type": "string",
+      "example": "Founded in 2020, focuses on eco-friendly products..."
+    },
+    {
+      "name": "targetAudience",
+      "description": "Primary and secondary audience segments",
+      "required": true,
+      "type": "string",
+      "example": "Primary: Eco-conscious millennials 25-40, Secondary: Gen Z students..."
+    },
+    {
+      "name": "competitors",
+      "description": "Key competitors and their positioning",
+      "required": true,
+      "type": "string",
+      "example": "Competitor A: Premium sustainability leader, Competitor B: Mass market affordable..."
+    },
+    {
+      "name": "challenges",
+      "description": "Key business or brand challenges to address",
+      "required": false,
+      "type": "string",
+      "example": "Limited brand awareness, price sensitivity, category maturity"
+    },
+    {
+      "name": "evidenceContext",
+      "description": "Research, data, facts extracted from documents",
+      "required": false,
+      "type": "string",
+      "example": "Customer surveys show 78% value sustainability, website analytics show..."
+    }
+  ]
+}

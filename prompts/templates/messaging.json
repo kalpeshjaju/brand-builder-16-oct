@@ -1,0 +1,60 @@
+{
+  "id": "messaging",
+  "name": "Brand Messaging Framework",
+  "description": "Develops key messages, narratives, and communication guidelines across channels",
+  "category": "generation",
+  "version": "1.0.0",
+  "systemPrompt": "You are an expert brand messaging strategist and copywriter. You craft compelling, consistent messages that resonate with audiences and drive action. Your messaging is clear, differentiated, and authentic.\n\nYour approach:\n- Audience-centric language\n- Clear benefit-focused messages\n- Emotional and rational appeals\n- Consistent brand voice\n- Channel-appropriate adaptation\n\nYou create messaging that is memorable, motivating, and ownable.",
+  "userPromptTemplate": "Create a comprehensive messaging framework for {{brandName}}.\n\n**Brand Strategy:**\n{{brandStrategy}}\n\n**Positioning:**\n{{positioning}}\n\n**Target Audiences:**\n{{audiences}}\n\n**Voice & Tone:**\n{{voiceTone}}\n\n**Key Proof Points:**\n{{proofPoints}}\n\nDevelop a complete messaging framework including:\n\n1. **Master Brand Narrative** (200-300 words)\n   - Our story\n   - Why we exist\n   - What we stand for\n   - Where we're going\n\n2. **Elevator Pitch** (30 seconds, ~75 words)\n\n3. **One-Line Description** (10-15 words)\n\n4. **Tagline Options** (3-5 options with rationale)\n\n5. **Key Messages** (5-7 core messages)\n   - Primary message\n   - Supporting messages\n   - Proof points for each\n   - When to use\n\n6. **Message Pillars** (3-4 themes)\n   - Pillar name\n   - Core idea\n   - Supporting messages\n   - Examples\n\n7. **Messaging by Audience** - Adapt messages for each segment\n\n8. **Messaging by Channel**\n   - Website/digital\n   - Social media\n   - Sales conversations\n   - PR/media\n   - Advertising\n\n9. **Value Propositions** - Functional, emotional, and social benefits\n\n10. **Message Testing Guidelines** - How to evaluate and refine\n\nFormat as structured JSON. Ensure all messages are differentiated, credible, and compelling.",
+  "temperature": 0.0,
+  "maxTokens": 6000,
+  "seed": 42,
+  "tags": ["messaging", "narrative", "communication"],
+  "author": "Brand Builder Pro",
+  "changelog": ["Initial version - comprehensive messaging framework"],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "Name of the brand",
+      "required": true,
+      "type": "string",
+      "example": "Acme Corp"
+    },
+    {
+      "name": "brandStrategy",
+      "description": "Purpose, mission, vision, values, positioning",
+      "required": true,
+      "type": "string",
+      "example": "Purpose: To make sustainable living accessible... Mission: We create..."
+    },
+    {
+      "name": "positioning",
+      "description": "Brand positioning statement",
+      "required": true,
+      "type": "string",
+      "example": "For eco-conscious consumers who refuse to compromise on quality, Acme is the sustainable choice that delivers premium performance because..."
+    },
+    {
+      "name": "audiences",
+      "description": "Target audience segments",
+      "required": true,
+      "type": "string",
+      "example": "Primary: Eco-conscious millennials 25-40, Secondary: Gen Z students, Tertiary: Parents"
+    },
+    {
+      "name": "voiceTone",
+      "description": "Brand voice and tone attributes",
+      "required": false,
+      "type": "string",
+      "default": "authentic, clear, inspiring, accessible",
+      "example": "Voice: Warm, knowledgeable, optimistic. Tone: Educational but approachable, confident but humble"
+    },
+    {
+      "name": "proofPoints",
+      "description": "Evidence and credibility builders",
+      "required": false,
+      "type": "string",
+      "example": "100K+ customers, 95% satisfaction, carbon neutral certified, featured in NY Times"
+    }
+  ]
+}

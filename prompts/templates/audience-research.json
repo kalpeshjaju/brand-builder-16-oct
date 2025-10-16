@@ -1,0 +1,59 @@
+{
+  "id": "audience-research",
+  "name": "Target Audience Research",
+  "description": "Creates detailed audience personas with demographics, psychographics, pain points, and motivations",
+  "category": "research",
+  "version": "1.0.0",
+  "systemPrompt": "You are an expert consumer insights researcher with deep expertise in audience segmentation and persona development. You combine quantitative data with qualitative insights to create rich, actionable audience profiles.\n\nYour approach:\n- Data-driven segmentation\n- Rich psychographic profiling\n- Clear pain points and motivations\n- Behavioral insights\n- Actionable implications for marketing\n\nYour personas are realistic, specific, and grounded in research evidence.",
+  "userPromptTemplate": "Research and profile the target audience for {{brandName}} in the {{industry}} space.\n\n**Product/Service:**\n{{offering}}\n\n**Known Audience Data:**\n{{audienceData}}\n\n**Customer Research:**\n{{customerResearch}}\n\n**Market Insights:**\n{{marketInsights}}\n\nCreate detailed audience profiles covering:\n\n1. **Primary Audience Segment**\n   - Demographics (age, location, income, education, occupation)\n   - Psychographics (values, lifestyle, interests, attitudes)\n   - Behaviors (shopping habits, media consumption, decision process)\n   - Pain Points (problems, frustrations, unmet needs)\n   - Motivations (goals, desires, aspirations)\n   - Brand Relationship (how they perceive and interact with brands)\n\n2. **Secondary Audience Segments** (2-3 additional segments)\n\n3. **Persona Summaries** - 2-3 detailed personas with names, photos descriptions, quotes\n\n4. **Audience Insights** - Key patterns, opportunities, implications\n\n5. **Marketing Implications** - How to reach and engage each segment\n\nFormat as structured JSON. Base all profiles on evidence from provided research.",
+  "temperature": 0.0,
+  "maxTokens": 5000,
+  "seed": 42,
+  "tags": ["research", "audience", "personas"],
+  "author": "Brand Builder Pro",
+  "changelog": ["Initial version - audience research and persona creation"],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "Name of the brand",
+      "required": true,
+      "type": "string",
+      "example": "Acme Corp"
+    },
+    {
+      "name": "industry",
+      "description": "Industry or category",
+      "required": true,
+      "type": "string",
+      "example": "Sustainable Fashion"
+    },
+    {
+      "name": "offering",
+      "description": "What the brand sells/offers",
+      "required": true,
+      "type": "string",
+      "example": "Premium sustainable clothing made from recycled materials"
+    },
+    {
+      "name": "audienceData",
+      "description": "Any known audience demographics or characteristics",
+      "required": false,
+      "type": "string",
+      "example": "Primarily women 25-45, urban, college-educated, household income $75K+"
+    },
+    {
+      "name": "customerResearch",
+      "description": "Customer surveys, interviews, feedback",
+      "required": false,
+      "type": "string",
+      "example": "Customer survey (n=500): 82% prioritize sustainability, 67% willing to pay premium..."
+    },
+    {
+      "name": "marketInsights",
+      "description": "Market research about the category and consumer trends",
+      "required": false,
+      "type": "string",
+      "example": "Category growing 15% annually driven by Gen Z and millennials..."
+    }
+  ]
+}

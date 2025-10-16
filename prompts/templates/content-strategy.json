@@ -1,0 +1,67 @@
+{
+  "id": "content-strategy",
+  "name": "Content Strategy & Calendar",
+  "description": "Creates content strategy, themes, and editorial calendar aligned with brand goals",
+  "category": "synthesis",
+  "version": "1.0.0",
+  "systemPrompt": "You are an expert content strategist with deep experience in brand storytelling and content marketing. You design content strategies that drive engagement, build brand equity, and achieve business goals.\n\nYour approach:\n- Audience-first content planning\n- Strategic alignment\n- Multi-channel integration\n- Measurement and optimization\n- Scalable content systems\n\nYou create content strategies that are practical, sustainable, and results-driven.",
+  "userPromptTemplate": "Develop a content strategy for {{brandName}} for {{timeframe}}.\n\n**Brand Strategy:**\n{{brandStrategy}}\n\n**Target Audiences:**\n{{audiences}}\n\n**Marketing Goals:**\n{{goals}}\n\n**Channels:**\n{{channels}}\n\n**Resources:**\n{{resources}}\n\nCreate a comprehensive content strategy including:\n\n1. **Content Strategy Overview**\n   - Goals and objectives\n   - Target audiences\n   - Content principles\n   - Success metrics\n\n2. **Content Pillars** (4-6 themes)\n   - Pillar name\n   - Strategic purpose\n   - Audience appeal\n   - Content types\n   - Example topics\n\n3. **Content Mix**\n   - Educational (thought leadership, how-to, guides)\n   - Inspirational (stories, testimonials, vision)\n   - Promotional (products, offers, announcements)\n   - Community (UGC, conversations, engagement)\n   - Percentages by type\n\n4. **Channel Strategy**\n   - Channel purpose and goals\n   - Content formats\n   - Posting frequency\n   - Voice/tone adaptation\n   - KPIs\n\n5. **Content Calendar** ({{timeframe}})\n   - Monthly themes\n   - Weekly topics\n   - Specific content ideas (30-50 pieces)\n   - Channel distribution\n\n6. **Content Production**\n   - Creation workflows\n   - Resource requirements\n   - Templates and guidelines\n   - Quality standards\n\n7. **Distribution & Amplification**\n   - Publishing schedule\n   - Cross-channel promotion\n   - Paid amplification\n   - Partnership opportunities\n\n8. **Measurement Framework**\n   - KPIs by channel\n   - Reporting cadence\n   - Optimization process\n\nFormat as structured JSON. Ensure strategy is actionable and aligned with brand positioning.",
+  "temperature": 0.0,
+  "maxTokens": 7000,
+  "seed": 42,
+  "tags": ["content", "strategy", "calendar", "synthesis"],
+  "author": "Brand Builder Pro",
+  "changelog": ["Initial version - content strategy and calendar creation"],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "Name of the brand",
+      "required": true,
+      "type": "string",
+      "example": "Acme Corp"
+    },
+    {
+      "name": "timeframe",
+      "description": "Planning period",
+      "required": true,
+      "type": "string",
+      "default": "Q1 2026",
+      "example": "6 months (Q1-Q2 2026)"
+    },
+    {
+      "name": "brandStrategy",
+      "description": "Brand purpose, positioning, values, personality",
+      "required": true,
+      "type": "string",
+      "example": "Purpose: Make sustainable living accessible... Positioning: Affordable eco-friendly alternative..."
+    },
+    {
+      "name": "audiences",
+      "description": "Target audience segments with content needs",
+      "required": true,
+      "type": "string",
+      "example": "Primary: Eco-conscious millennials seeking practical tips, Secondary: Parents wanting sustainable options for kids"
+    },
+    {
+      "name": "goals",
+      "description": "Marketing and business goals for content",
+      "required": true,
+      "type": "string",
+      "example": "Increase brand awareness 50%, grow email list to 10K, drive 30% more website traffic, establish thought leadership"
+    },
+    {
+      "name": "channels",
+      "description": "Available marketing channels",
+      "required": true,
+      "type": "string",
+      "example": "Website blog, Instagram, LinkedIn, email newsletter, YouTube"
+    },
+    {
+      "name": "resources",
+      "description": "Team, budget, tools available",
+      "required": false,
+      "type": "string",
+      "example": "1 content manager, 1 designer, freelance writers, $5K/month budget, Canva + Buffer + Mailchimp"
+    }
+  ]
+}

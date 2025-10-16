@@ -3,7 +3,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash, randomUUID } from 'crypto';
 import type { LLMConfig, LLMMetadata } from '../types/index.js';
+import type { PromptRenderContext } from '../types/prompt-types.js';
 import { Logger } from '../utils/index.js';
+import { PromptRegistry } from './prompt-registry.js';
 
 const logger = new Logger('LLMService');
 
@@ -15,6 +17,7 @@ export interface LLMResponse {
 export class LLMService {
   private client: Anthropic;
   private config: LLMConfig;
+  private promptRegistry: PromptRegistry;
 
   constructor(config?: Partial<LLMConfig>) {
     const apiKey = process.env['ANTHROPIC_API_KEY'];
@@ -35,6 +38,8 @@ export class LLMService {
       ...config,
     };
 
+    this.promptRegistry = new PromptRegistry();
+
     logger.info('LLM Service initialized', { model: this.config.model });
   }
 
@@ -43,13 +48,15 @@ export class LLMService {
    */
   private generateMetadata(
     promptText: string,
-    config: Partial<LLMConfig>
+    config: Partial<LLMConfig>,
+    promptId?: string
   ): LLMMetadata {
     const promptHash = createHash('sha256').update(promptText).digest('hex');
 
     return {
       model: config.model || this.config.model,
       modelVersion: config.model || this.config.model,
+      promptId,
       promptTextHash: promptHash,
       temperature: config.temperature ?? this.config.temperature,
       seed: config.seed ?? this.config.seed,
@@ -188,6 +195,94 @@ export class LLMService {
       temperature: 0,
       seed: 42,
     });
+  }
+
+  /**
+   * Use a registered prompt template
+   */
+  async promptFromRegistry(
+    promptId: string,
+    context: PromptRenderContext,
+    options?: { version?: string; confidence?: number }
+  ): Promise<LLMResponse> {
+    // Initialize registry if needed
+    await this.promptRegistry.initialize();
+
+    // Get the prompt template
+    const template = await this.promptRegistry.getPrompt(promptId, options?.version);
+
+    // Validate that all required variables are provided
+    const validation = this.promptRegistry.validatePrompt(template, context);
+    if (!validation.valid) {
+      const errors = [
+        ...validation.errors,
+        ...(validation.missingVariables || []).map(v => `Missing required variable: ${v}`)
+      ];
+      throw new Error(
+        `Cannot use prompt template "${template.name}":\n` +
+        errors.map(e => `  • ${e}`).join('\n') +
+        `\nFix: Provide all required variables in the context.`
+      );
+    }
+
+    // Render the user prompt with context
+    const userPrompt = this.promptRegistry.renderPrompt(template.userPromptTemplate, context);
+
+    // Use template configuration (or override with options)
+    const llmOptions: Partial<LLMConfig> = {
+      temperature: template.temperature,
+      maxTokens: template.maxTokens,
+      seed: template.seed,
+    };
+
+    // Call LLM with rendered prompt
+    const fullPrompt = `${template.systemPrompt}\n\n${userPrompt}`;
+    const metadata = this.generateMetadata(fullPrompt, llmOptions, template.id);
+
+    try {
+      const messages: Anthropic.MessageParam[] = [
+        { role: 'user', content: userPrompt },
+      ];
+
+      const response = await this.client.messages.create({
+        model: this.config.model,
+        max_tokens: llmOptions.maxTokens || this.config.maxTokens,
+        temperature: llmOptions.temperature ?? this.config.temperature,
+        system: template.systemPrompt,
+        messages,
+      });
+
+      const content = response.content[0];
+      if (content?.type !== 'text') {
+        throw new Error('Unexpected response format from Claude API');
+      }
+
+      // Track usage in registry
+      await this.promptRegistry.trackUsage(promptId, options?.version, options?.confidence);
+
+      logger.info('Prompt from registry executed', {
+        promptId,
+        version: template.version,
+        runId: metadata.runId
+      });
+
+      return { content: content.text, metadata };
+
+    } catch (error) {
+      logger.error('Prompt from registry failed', { promptId, runId: metadata.runId, error });
+      throw new Error(
+        `Failed to execute prompt "${template.name}"\n` +
+        `Reason: ${(error as Error).message}\n` +
+        `Fix: Check your API key and network connection.`
+      );
+    }
+  }
+
+  /**
+   * Get the prompt registry instance
+   */
+  getPromptRegistry(): PromptRegistry {
+    return this.promptRegistry;
   }
 
   /**

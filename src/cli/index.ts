@@ -10,6 +10,17 @@ import { generateCommand } from './commands/generate.js';
 import { auditCommand } from './commands/audit.js';
 import { contextCommand } from './commands/context.js';
 import { ingestCommand } from './commands/ingest.js';
+import {
+  listPromptsCommand,
+  showPromptCommand,
+  createPromptCommand,
+  updatePromptCommand,
+  activatePromptCommand,
+  rollbackPromptCommand,
+  historyPromptCommand,
+  statsPromptCommand,
+  deletePromptCommand,
+} from './commands/prompts.js';
 
 // Load environment variables
 config();
@@ -79,6 +90,72 @@ program
   .option('--extract', 'Extract facts', true)
   .option('--index', 'Create index', true)
   .action(ingestCommand);
+
+// Prompts command group
+const promptsCmd = program
+  .command('prompts')
+  .description('Manage prompt templates and versions');
+
+// prompts list
+promptsCmd
+  .command('list')
+  .description('List all prompts')
+  .option('-c, --category <type>', 'Filter by category (generation|analysis|qa|audit|research|synthesis)')
+  .action(listPromptsCommand);
+
+// prompts show
+promptsCmd
+  .command('show <id>')
+  .description('Show prompt details')
+  .option('-v, --version <version>', 'Specific version')
+  .action(showPromptCommand);
+
+// prompts create
+promptsCmd
+  .command('create')
+  .description('Create a new prompt from template file')
+  .requiredOption('-t, --template <path>', 'Template JSON file path')
+  .action(createPromptCommand);
+
+// prompts update
+promptsCmd
+  .command('update <id>')
+  .description('Update a prompt (creates new version)')
+  .requiredOption('-c, --changes <description>', 'Description of changes')
+  .option('-a, --author <name>', 'Author name')
+  .option('-t, --template <path>', 'Template file with updates')
+  .action(updatePromptCommand);
+
+// prompts activate
+promptsCmd
+  .command('activate <id> <version>')
+  .description('Set a version as active')
+  .action(activatePromptCommand);
+
+// prompts rollback
+promptsCmd
+  .command('rollback <id> <version>')
+  .description('Rollback to a previous version')
+  .action(rollbackPromptCommand);
+
+// prompts history
+promptsCmd
+  .command('history <id>')
+  .description('Show version history')
+  .action(historyPromptCommand);
+
+// prompts stats
+promptsCmd
+  .command('stats <id>')
+  .description('Show usage statistics')
+  .action(statsPromptCommand);
+
+// prompts delete
+promptsCmd
+  .command('delete <id> <version>')
+  .description('Delete a specific version')
+  .option('-f, --force', 'Force deletion without confirmation')
+  .action(deletePromptCommand);
 
 // Parse and execute
 program.parse();

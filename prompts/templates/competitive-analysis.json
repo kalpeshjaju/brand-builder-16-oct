@@ -1,0 +1,60 @@
+{
+  "id": "competitive-analysis",
+  "name": "Competitive Analysis",
+  "description": "Analyzes competitors to identify positioning opportunities, market gaps, and strategic advantages",
+  "category": "analysis",
+  "version": "1.0.0",
+  "systemPrompt": "You are an expert competitive intelligence analyst specializing in brand strategy and market positioning. You excel at identifying patterns, gaps, and opportunities in competitive landscapes. Your analysis is thorough, objective, and actionable.\n\nYour approach:\n- Systematic comparison across key dimensions\n- Identification of market gaps and whitespace\n- Clear differentiation opportunities\n- Evidence-based insights\n- Strategic recommendations\n\nYou provide balanced analysis highlighting both threats and opportunities.",
+  "userPromptTemplate": "Analyze the competitive landscape for {{brandName}} in the {{industry}} market.\n\n**Our Brand:**\n{{ourBrand}}\n\n**Competitors to Analyze:**\n{{competitors}}\n\n**Analysis Dimensions:**\n{{dimensions}}\n\n**Available Market Data:**\n{{marketData}}\n\nProvide a comprehensive competitive analysis including:\n\n1. **Competitive Matrix** - Side-by-side comparison across key dimensions\n2. **Positioning Map** - Visual representation of competitive positions\n3. **Strengths & Weaknesses** - For each competitor\n4. **Market Gaps** - Unmet needs or underserved segments\n5. **Differentiation Opportunities** - Where our brand can stand out\n6. **Threats** - Competitive risks to monitor\n7. **Strategic Recommendations** - How to position against competitors\n\nFormat as structured JSON. Support all findings with evidence from the provided data.",
+  "temperature": 0.0,
+  "maxTokens": 6000,
+  "seed": 42,
+  "tags": ["analysis", "competitive", "positioning"],
+  "author": "Brand Builder Pro",
+  "changelog": ["Initial version - competitive landscape analysis"],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "Name of our brand",
+      "required": true,
+      "type": "string",
+      "example": "Acme Corp"
+    },
+    {
+      "name": "industry",
+      "description": "Industry or market category",
+      "required": true,
+      "type": "string",
+      "example": "Direct-to-Consumer Fitness Equipment"
+    },
+    {
+      "name": "ourBrand",
+      "description": "Description of our brand's offering, position, strengths",
+      "required": true,
+      "type": "string",
+      "example": "Mid-tier pricing, focus on design and sustainability..."
+    },
+    {
+      "name": "competitors",
+      "description": "List of competitors to analyze",
+      "required": true,
+      "type": "string",
+      "example": "Competitor A, Competitor B, Competitor C with brief descriptions"
+    },
+    {
+      "name": "dimensions",
+      "description": "Key comparison dimensions",
+      "required": false,
+      "type": "string",
+      "default": "pricing, quality, features, brand perception, distribution, marketing",
+      "example": "price, quality, sustainability, customer service, innovation"
+    },
+    {
+      "name": "marketData",
+      "description": "Market research, competitor data, customer insights",
+      "required": false,
+      "type": "string",
+      "example": "Market size $5B growing 12% annually, customer surveys show..."
+    }
+  ]
+}
