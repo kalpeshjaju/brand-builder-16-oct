@@ -356,13 +356,16 @@ Format as JSON array with keys: gap, description, evidence, opportunitySize, con
         return [];
       }
 
-      return parsed.map((item: any) => ({
-        gap: item.gap || 'Unknown gap',
-        description: item.description || '',
-        evidence: Array.isArray(item.evidence) ? item.evidence : [],
-        opportunitySize: item.opportunitySize || 'medium',
-        confidence: typeof item.confidence === 'number' ? item.confidence / 10 : 0.5,
-      }));
+      return parsed.map((item: unknown) => {
+        const obj = item as Record<string, unknown>;
+        return {
+          gap: (obj.gap as string) || 'Unknown gap',
+          description: (obj.description as string) || '',
+          evidence: Array.isArray(obj.evidence) ? obj.evidence as string[] : [],
+          opportunitySize: (obj.opportunitySize as 'small' | 'medium' | 'large') || 'medium',
+          confidence: typeof obj.confidence === 'number' ? obj.confidence / 10 : 0.5,
+        };
+      });
     } catch (error) {
       logger.error('Failed to parse market gaps', error);
       return [];
@@ -408,12 +411,15 @@ Return 5-7 contradictions as JSON array with keys: what, evidence, implication, 
         return [];
       }
 
-      return parsed.map((item: any) => ({
-        what: item.what || '',
-        evidence: item.evidence || '',
-        implication: item.implication || '',
-        severity: item.severity || 'medium',
-      }));
+      return parsed.map((item: unknown) => {
+        const obj = item as Record<string, unknown>;
+        return {
+          what: (obj.what as string) || '',
+          evidence: (obj.evidence as string) || '',
+          implication: (obj.implication as string) || '',
+          severity: (obj.severity as 'low' | 'medium' | 'high') || 'medium',
+        };
+      });
     } catch (error) {
       logger.error('Failed to parse contradictions', error);
       return [];
@@ -514,13 +520,16 @@ Format as JSON array with keys: trend, description, relevance, source, date`;
         return [];
       }
 
-      return parsed.map((item: any) => ({
-        trend: item.trend || '',
-        description: item.description || '',
-        relevance: item.relevance || '',
-        source: item.source || 'Market analysis',
-        date: item.date || new Date().toISOString(),
-      }));
+      return parsed.map((item: unknown) => {
+        const obj = item as Record<string, unknown>;
+        return {
+          trend: (obj.trend as string) || '',
+          description: (obj.description as string) || '',
+          relevance: (obj.relevance as string) || '',
+          source: (obj.source as string) || 'Market analysis',
+          date: (obj.date as string) || new Date().toISOString(),
+        };
+      });
     } catch (error) {
       logger.error('Failed to parse cultural context', error);
       return [];
