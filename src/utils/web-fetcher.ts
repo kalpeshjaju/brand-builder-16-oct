@@ -6,7 +6,7 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import * as cheerio from 'cheerio';
+import { load, type CheerioAPI } from 'cheerio';
 import { createHash } from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -142,7 +142,7 @@ export class WebFetcher {
    * Extract content from HTML
    */
   private extractContent(url: string, html: string): WebFetchResult {
-    const $ = cheerio.load(html);
+    const $ = load(html);
 
     // Remove unwanted elements
     $('script, style, nav, footer, header, iframe, noscript').remove();

@@ -1,0 +1,20 @@
+{
+  "testBrands": [
+    {
+      "name": "Test Brand Alpha",
+      "industry": "Technology",
+      "category": "SaaS",
+      "url": "https://example.com"
+    },
+    {
+      "name": "Test Brand Beta",
+      "industry": "E-commerce",
+      "category": "Retail",
+      "url": "https://example.org"
+    }
+  ],
+  "mockResponses": {
+    "simpleHTML": "<html><head><title>Test Page</title></head><body><h1>Hello World</h1><p>This is test content.</p></body></html>",
+    "emptyHTML": "<html><head><title>Empty</title></head><body></body></html>"
+  }
+}
