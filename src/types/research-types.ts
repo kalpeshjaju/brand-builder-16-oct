@@ -1,7 +1,7 @@
 // Research and findings types
 
 import type { ConfidenceLevel, SourcedClaim, ResearchSource } from './common-types.js';
-import type { Competitor, AudienceProfile, BrandDNA } from './brand-types.js';
+import type { AudienceProfile, BrandDNA } from './brand-types.js';
 
 export interface ResearchFinding {
   topic: string;

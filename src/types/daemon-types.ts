@@ -1,7 +1,6 @@
 // Daemon Service types - Background processing
 
 import type { FileWatchEvent } from './context-types.js';
-import type { IngestionResult } from './ingestion-types.js';
 
 export type DaemonStatus = 'idle' | 'processing' | 'error' | 'stopped';
 export type TaskType = 'ingest' | 'index' | 'audit' | 'generate' | 'query';

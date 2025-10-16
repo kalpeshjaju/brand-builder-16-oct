@@ -1,8 +1,6 @@
 // CLI command and interaction types
 
 import type { BrandConfiguration } from './brand-types.js';
-import type { AuditOptions } from './audit-types.js';
-import type { SemanticSearchOptions } from './oracle-types.js';
 
 export type CommandName =
   | 'init'
@@ -23,6 +21,8 @@ export interface BaseCommandOptions {
 
 export interface InitCommandOptions extends BaseCommandOptions {
   brand: string;
+  industry?: string;
+  category?: string;
   template?: 'minimal' | 'standard' | 'comprehensive';
   interactive?: boolean;
 }

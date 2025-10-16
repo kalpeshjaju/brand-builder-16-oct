@@ -49,23 +49,61 @@ brand-builder-16-oct/
 ## Quick Start
 
 ```bash
-# Install dependencies
+# 1. Clone the repository
+git clone https://github.com/kalpeshjaju/brand-builder-16-oct.git
+cd brand-builder-16-oct
+
+# 2. Install dependencies
 npm install
 
+# 3. Set up environment
+cp .env.example .env
+# Edit .env and add your ANTHROPIC_API_KEY
+
+# 4. Build the project
+npm run build
+
+# 5. Link CLI globally (optional)
+npm link
+
+# Now you can use the brandos command:
+
 # Initialize a brand workspace
-brandos init --brand "Your Brand"
+brandos init --brand "Acme Corp" --industry "Technology" --category "SaaS"
 
 # Ask a question
-brandos ask "What are our competitive advantages?"
+brandos ask "What are our competitive advantages?" --brand "Acme Corp"
 
 # Generate strategy
-brandos generate --brand "Your Brand"
+brandos generate --brand "Acme Corp" --mode professional
 
 # Audit quality
-brandos audit --input strategy.json
+brandos audit --input outputs/strategies/acme-corp-strategy.json
 
-# Check context
-brandos context status
+# Check context status
+brandos context status --brand "Acme Corp"
+
+# Ingest a document
+brandos ingest ./document.pdf --brand "Acme Corp" --category document
+```
+
+## Development
+
+```bash
+# Run in development mode
+npm run dev
+
+# Type check
+npm run type-check
+
+# Run tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Build for production
+npm run build
 ```
 
 ## Tech Stack
