@@ -21,6 +21,14 @@ import {
   statsPromptCommand,
   deletePromptCommand,
 } from './commands/prompts.js';
+import {
+  startOracleCommand,
+  stopOracleCommand,
+  statusOracleCommand,
+  reindexOracleCommand,
+  searchOracleCommand,
+  statsOracleCommand,
+} from './commands/oracle.js';
 
 // Load environment variables
 config();
@@ -156,6 +164,52 @@ promptsCmd
   .description('Delete a specific version')
   .option('-f, --force', 'Force deletion without confirmation')
   .action(deletePromptCommand);
+
+// Oracle command group
+const oracleCmd = program
+  .command('oracle')
+  .description('Manage ORACLE semantic search service');
+
+// oracle start
+oracleCmd
+  .command('start')
+  .description('Start ORACLE service')
+  .action(startOracleCommand);
+
+// oracle stop
+oracleCmd
+  .command('stop')
+  .description('Stop ORACLE service')
+  .action(stopOracleCommand);
+
+// oracle status
+oracleCmd
+  .command('status')
+  .description('Check ORACLE service status')
+  .action(statusOracleCommand);
+
+// oracle reindex
+oracleCmd
+  .command('reindex')
+  .description('Reindex all documents for a brand')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .action(reindexOracleCommand);
+
+// oracle search
+oracleCmd
+  .command('search <query>')
+  .description('Search indexed documents')
+  .option('-b, --brand <name>', 'Brand name')
+  .option('-k, --top-k <number>', 'Number of results', '5')
+  .option('--no-rerank', 'Disable reranking')
+  .action(searchOracleCommand);
+
+// oracle stats
+oracleCmd
+  .command('stats')
+  .description('Show collection statistics')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .action(statsOracleCommand);
 
 // Parse and execute
 program.parse();
