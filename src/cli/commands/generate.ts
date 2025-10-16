@@ -1,10 +1,43 @@
 // Generate command - Generate brand strategy
 
-import type { GenerateCommandOptions } from '../../types/index.js';
+import type { BrandStrategy, GenerateCommandOptions } from '../../types/index.js';
 import { LLMService } from '../../genesis/llm-service.js';
-import { FileSystemUtils, logger, FormattingUtils } from '../../utils/index.js';
+import { FileSystemUtils, logger, FormattingUtils, parseJSON, isBrandStrategyLike } from '../../utils/index.js';
 import chalk from 'chalk';
 import ora from 'ora';
+
+function extractBrandStrategy(rawResponse: string, brand: string): {
+  strategy: BrandStrategy;
+  parseMethod?: string;
+} {
+  const parsed = parseJSON<Record<string, unknown>>(rawResponse);
+
+  if (!parsed.success || !parsed.data) {
+    throw new Error(
+      'Generated strategy could not be parsed as valid JSON. ' +
+      'Update the prompt or retry to ensure the response is structured JSON.'
+    );
+  }
+
+  const payload = parsed.data;
+  const candidate = isBrandStrategyLike(payload)
+    ? payload
+    : (payload?.['brandStrategy'] as unknown);
+
+  if (!isBrandStrategyLike(candidate)) {
+    throw new Error(
+      'Generated strategy is missing a `brandStrategy` object with core fields (purpose, mission, positioning, etc.).'
+    );
+  }
+
+  const strategy = candidate;
+
+  if (!strategy.keyMessages || strategy.keyMessages.length === 0) {
+    logger.warn('Generated strategy contains no key messages', { brand });
+  }
+
+  return { strategy, parseMethod: parsed.method };
+}
 
 export async function generateCommand(options: GenerateCommandOptions): Promise<void> {
   const spinner = ora('Generating brand strategy...').start();
@@ -50,17 +83,22 @@ Format as structured JSON.`;
 
     spinner.text = `Generating ${mode} strategy...`;
     const strategyText = await llm.prompt(prompt);
+    const { strategy, parseMethod } = extractBrandStrategy(strategyText, brand);
 
-    const strategy = {
+    const outputPayload = {
       brandName: brand,
       generatedAt: new Date().toISOString(),
       mode,
-      content: strategyText,
+      strategy,
+      rawContent: strategyText,
+      metadata: {
+        parseMethod: parseMethod ?? 'unknown',
+      },
     };
 
     // Save strategy
     const outputPath = output || `outputs/strategies/${FormattingUtils.sanitizeFilename(brand)}-strategy.json`;
-    await FileSystemUtils.writeJSON(outputPath, strategy);
+    await FileSystemUtils.writeJSON(outputPath, outputPayload);
 
     spinner.succeed(chalk.green('Strategy generated successfully!'));
 

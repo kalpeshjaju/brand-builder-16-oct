@@ -1,8 +1,8 @@
 // Audit command - Audit brand strategy quality
 
-import type { AuditCommandOptions, BrandStrategy } from '../../types/index.js';
+import type { AuditCommandOptions } from '../../types/index.js';
 import { BrandAuditor } from '../../guardian/brand-auditor.js';
-import { FileSystemUtils, logger } from '../../utils/index.js';
+import { FileSystemUtils, logger, loadStrategyFromFile } from '../../utils/index.js';
 import chalk from 'chalk';
 import ora from 'ora';
 
@@ -19,14 +19,30 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
       throw new Error(`Strategy file not found: ${input}`);
     }
 
-    const strategy = await FileSystemUtils.readJSON<BrandStrategy>(input);
+    const loaded = await loadStrategyFromFile(input);
+
+    logger.debug('Loaded strategy file', {
+      brandName: loaded.brandName,
+      parseMethod: loaded.metadata.parseMethod,
+      generatedAt: loaded.metadata.generatedAt,
+      detectedMode: loaded.metadata.mode,
+    });
 
     // Perform comprehensive audit using BrandAuditor
     const auditor = new BrandAuditor();
+
+    // Validate and normalize mode
+    const detectedMode = loaded.metadata.mode;
+    const validModes = ['quick', 'standard', 'comprehensive'] as const;
+    const auditMode = mode ||
+      (detectedMode && validModes.includes(detectedMode as typeof validModes[number])
+        ? (detectedMode as typeof validModes[number])
+        : 'standard');
+
     const auditResult = await auditor.audit(
-      strategy,
-      (strategy as any).brandName || 'Unknown',
-      { mode: mode || 'standard' }
+      loaded.strategy,
+      loaded.brandName,
+      { mode: auditMode }
     );
 
     // Save audit report

@@ -359,11 +359,11 @@ Format as JSON array with keys: gap, description, evidence, opportunitySize, con
       return parsed.map((item: unknown) => {
         const obj = item as Record<string, unknown>;
         return {
-          gap: (obj.gap as string) || 'Unknown gap',
-          description: (obj.description as string) || '',
-          evidence: Array.isArray(obj.evidence) ? obj.evidence as string[] : [],
-          opportunitySize: (obj.opportunitySize as 'small' | 'medium' | 'large') || 'medium',
-          confidence: typeof obj.confidence === 'number' ? obj.confidence / 10 : 0.5,
+          gap: (obj['gap'] as string) || 'Unknown gap',
+          description: (obj['description'] as string) || '',
+          evidence: Array.isArray(obj['evidence']) ? obj['evidence'] as string[] : [],
+          opportunitySize: (obj['opportunitySize'] as 'small' | 'medium' | 'large') || 'medium',
+          confidence: typeof obj['confidence'] === 'number' ? obj['confidence'] as number / 10 : 0.5,
         };
       });
     } catch (error) {
@@ -414,10 +414,10 @@ Return 5-7 contradictions as JSON array with keys: what, evidence, implication, 
       return parsed.map((item: unknown) => {
         const obj = item as Record<string, unknown>;
         return {
-          what: (obj.what as string) || '',
-          evidence: (obj.evidence as string) || '',
-          implication: (obj.implication as string) || '',
-          severity: (obj.severity as 'low' | 'medium' | 'high') || 'medium',
+          what: (obj['what'] as string) || '',
+          evidence: (obj['evidence'] as string) || '',
+          implication: (obj['implication'] as string) || '',
+          severity: (obj['severity'] as 'low' | 'medium' | 'high') || 'medium',
         };
       });
     } catch (error) {
@@ -523,11 +523,11 @@ Format as JSON array with keys: trend, description, relevance, source, date`;
       return parsed.map((item: unknown) => {
         const obj = item as Record<string, unknown>;
         return {
-          trend: (obj.trend as string) || '',
-          description: (obj.description as string) || '',
-          relevance: (obj.relevance as string) || '',
-          source: (obj.source as string) || 'Market analysis',
-          date: (obj.date as string) || new Date().toISOString(),
+          trend: (obj['trend'] as string) || '',
+          description: (obj['description'] as string) || '',
+          relevance: (obj['relevance'] as string) || '',
+          source: (obj['source'] as string) || 'Market analysis',
+          date: (obj['date'] as string) || new Date().toISOString(),
         };
       });
     } catch (error) {
