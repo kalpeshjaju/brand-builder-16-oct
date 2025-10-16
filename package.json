@@ -1,12 +1,20 @@
 {
   "name": "brand-builder-pro",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "CLI-first Brand Intelligence Operating System - AI-powered strategy generation, quality validation, and semantic search",
   "main": "dist/index.js",
   "bin": {
     "brandos": "./dist/cli/index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kalpeshjaju/brand-builder-16-oct.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kalpeshjaju/brand-builder-16-oct/issues"
+  },
+  "homepage": "https://github.com/kalpeshjaju/brand-builder-16-oct#readme",
   "scripts": {
     "dev": "tsx src/cli/index.ts",
     "build": "tsc",
