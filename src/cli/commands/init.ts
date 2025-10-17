@@ -51,7 +51,7 @@ export async function initCommand(options: InitCommandOptions): Promise<void> {
       version: '1.0.0',
     };
 
-    await FileSystemUtils.writeJSON(`${workspacePath}/brand-config.json`, config);
+    await FileSystemUtils.writeJSON(`${workspacePath}/config.json`, config);
 
     // Create initial context state
     const contextState = {

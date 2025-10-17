@@ -71,15 +71,24 @@ ${JSON.stringify(config, null, 2)}
 
 Mode: ${mode}
 
-Please provide:
-1. Brand Positioning
-2. Value Proposition
-3. Key Messages (3-5)
-4. Target Audience
-5. Competitive Differentiation
-6. Brand Personality
+Return ONLY a JSON object with this exact structure (no markdown, no code blocks):
 
-Format as structured JSON.`;
+{
+  "purpose": "string - brand's reason for existing",
+  "mission": "string - what the brand aims to accomplish",
+  "vision": "string - long-term aspiration",
+  "values": ["value1", "value2", "value3"],
+  "positioning": "string - how the brand positions itself in the market",
+  "personality": ["trait1", "trait2", "trait3"],
+  "voiceAndTone": {
+    "voice": "string - brand voice description",
+    "toneAttributes": ["attribute1", "attribute2"]
+  },
+  "keyMessages": ["message1", "message2", "message3"],
+  "differentiators": ["differentiator1", "differentiator2"]
+}
+
+Ensure the response is valid JSON only, starting with { and ending with }.`;
 
     spinner.text = `Generating ${mode} strategy...`;
     const strategyText = await llm.prompt(prompt);
