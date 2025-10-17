@@ -246,7 +246,7 @@ export function createDeliverableTracker(deliverables: Record<string, string[]>)
   Object.entries(deliverables).forEach(([phase, items]) => {
     tracker[phase] = {};
     items.forEach(item => {
-      tracker[phase][item] = {
+      tracker[phase]![item] = {
         status: 'pending',
         assignee: null,
         startDate: null,

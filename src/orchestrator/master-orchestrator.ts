@@ -387,7 +387,7 @@ export class MasterOrchestrator extends EventEmitter {
   private async executeAgent(
     agentName: string,
     input: AgentInput,
-    timeout: number
+    _timeout: number
   ): Promise<AgentOutput> {
     const agentEntry = this.agentRegistry.get(agentName);
 
@@ -436,7 +436,7 @@ export class MasterOrchestrator extends EventEmitter {
   /**
    * Load agent dynamically
    */
-  private async loadAgent(entry: AgentRegistryEntry): Promise<BaseAgent> {
+  private async loadAgent(_entry: AgentRegistryEntry): Promise<BaseAgent> {
     // In production, would dynamically import the agent module
     // For now, return a mock instance
     const { ContradictionDetectorAgent } = await import('../discovery/agents/contradiction-detector-agent.js');
@@ -498,7 +498,7 @@ export class MasterOrchestrator extends EventEmitter {
   /**
    * Extract deliverables from results
    */
-  private extractDeliverables(stageResults: StageResult[]): string[] {
+  private extractDeliverables(_stageResults: StageResult[]): string[] {
     // Would extract actual deliverables from agent outputs
     return [
       'Brand Audit Report',
@@ -538,6 +538,7 @@ export class MasterOrchestrator extends EventEmitter {
       totalAgents: this.agentRegistry.size,
       executedStages: this.executionHistory.length,
       lastExecution: this.executionHistory[this.executionHistory.length - 1],
+      pipelineConfig: this.pipelineConfig,
     };
   }
 }

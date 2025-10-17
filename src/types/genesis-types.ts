@@ -8,6 +8,7 @@
  */
 export interface BrandConfiguration {
   brandName: string;
+  brandUrl?: string;
   industry: string;
   category: string;
   companyProfile?: {

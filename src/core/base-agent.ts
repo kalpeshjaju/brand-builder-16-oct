@@ -196,7 +196,7 @@ export abstract class BaseAgent {
   /**
    * Assess data completeness (0-2.5 points)
    */
-  protected assessDataCompleteness(findings: any): number {
+  protected assessDataCompleteness(_findings: any): number {
     // Override in specific agents
     return 1.5;
   }
@@ -204,7 +204,7 @@ export abstract class BaseAgent {
   /**
    * Assess data quality (0-2.5 points)
    */
-  protected assessDataQuality(findings: any): number {
+  protected assessDataQuality(_findings: any): number {
     // Override in specific agents
     return 1.5;
   }
@@ -212,7 +212,7 @@ export abstract class BaseAgent {
   /**
    * Assess consistency (0-3 points)
    */
-  protected assessConsistency(findings: any): number {
+  protected assessConsistency(_findings: any): number {
     // Override in specific agents
     return 2;
   }
@@ -220,7 +220,7 @@ export abstract class BaseAgent {
   /**
    * Generate recommendations based on findings
    */
-  protected generateRecommendations(findings: any): string[] {
+  protected generateRecommendations(_findings: any): string[] {
     // Default implementation - agents should override
     return [];
   }

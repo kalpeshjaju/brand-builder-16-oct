@@ -90,10 +90,10 @@ export class ContradictionDetectorAgent extends BaseAgent {
    */
   private async extractBrandContent(input: AgentInput): Promise<any> {
     const content = {
-      claims: [],
-      evidence: [],
-      promises: [],
-      experiences: [],
+      claims: [] as string[],
+      evidence: [] as string[],
+      promises: [] as string[],
+      experiences: [] as string[],
     };
 
     // Extract from website if available
@@ -177,7 +177,7 @@ export class ContradictionDetectorAgent extends BaseAgent {
   /**
    * Detect internal inconsistencies
    */
-  private detectInternalInconsistencies(content: any): ContradictionFinding[] {
+  private detectInternalInconsistencies(_content: any): ContradictionFinding[] {
     // Would implement actual detection logic
     return [];
   }
@@ -185,7 +185,7 @@ export class ContradictionDetectorAgent extends BaseAgent {
   /**
    * Detect promise vs delivery gaps
    */
-  private detectPromiseDeliveryGaps(content: any): ContradictionFinding[] {
+  private detectPromiseDeliveryGaps(_content: any): ContradictionFinding[] {
     // Would implement actual detection logic
     return [];
   }
@@ -193,7 +193,7 @@ export class ContradictionDetectorAgent extends BaseAgent {
   /**
    * Detect message vs experience gaps
    */
-  private detectMessageExperienceGaps(content: any): ContradictionFinding[] {
+  private detectMessageExperienceGaps(_content: any): ContradictionFinding[] {
     // Would implement actual detection logic
     return [];
   }
@@ -224,7 +224,7 @@ export class ContradictionDetectorAgent extends BaseAgent {
   /**
    * Extract promises from content
    */
-  private extractPromises(content: string): string[] {
+  private extractPromises(_content: string): string[] {
     // Would implement actual extraction logic
     return [];
   }
@@ -232,7 +232,7 @@ export class ContradictionDetectorAgent extends BaseAgent {
   /**
    * Extract experiences from reviews
    */
-  private extractExperiences(reviews: any[]): string[] {
+  private extractExperiences(_reviews: any[]): string[] {
     // Would implement actual extraction logic
     return [];
   }
@@ -240,7 +240,7 @@ export class ContradictionDetectorAgent extends BaseAgent {
   /**
    * Extract evidence from social media
    */
-  private extractEvidence(socialMedia: any): string[] {
+  private extractEvidence(_socialMedia: any): string[] {
     // Would implement actual extraction logic
     return [];
   }
@@ -292,30 +292,30 @@ export class ContradictionDetectorAgent extends BaseAgent {
   /**
    * Generate recommendations based on findings
    */
-  protected generateRecommendations(analysis: ContradictionAnalysis): string[] {
+  protected override generateRecommendations(analysis: ContradictionAnalysis): string[] {
     const recommendations: string[] = [];
 
     // Priority recommendations based on severity
-    if (analysis.bySeverity.critical > 0) {
+    if (analysis.bySeverity['critical'] && analysis.bySeverity['critical'] > 0) {
       recommendations.push(
         'URGENT: Address critical contradictions immediately to prevent brand damage'
       );
     }
 
-    if (analysis.bySeverity.high > 0) {
+    if (analysis.bySeverity['high'] && analysis.bySeverity['high'] > 0) {
       recommendations.push(
         'Review and update all marketing claims to ensure evidence-based messaging'
       );
     }
 
     // Type-specific recommendations
-    if (analysis.byType['claim-vs-evidence'] > 0) {
+    if (analysis.byType['claim-vs-evidence'] && analysis.byType['claim-vs-evidence'] > 0) {
       recommendations.push(
         'Implement fact-checking process for all marketing claims before publication'
       );
     }
 
-    if (analysis.byType['promise-vs-delivery'] > 0) {
+    if (analysis.byType['promise-vs-delivery'] && analysis.byType['promise-vs-delivery'] > 0) {
       recommendations.push(
         'Align operational capabilities with brand promises to close delivery gaps'
       );
@@ -334,7 +334,7 @@ export class ContradictionDetectorAgent extends BaseAgent {
   /**
    * Calculate confidence score
    */
-  protected calculateConfidence(analysis: ContradictionAnalysis): number {
+  protected override calculateConfidence(analysis: ContradictionAnalysis): number {
     // Higher confidence when more contradictions are found
     // (because the analysis is more comprehensive)
     const factors = {
