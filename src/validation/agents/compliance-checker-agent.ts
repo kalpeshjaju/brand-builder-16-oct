@@ -86,13 +86,74 @@ export class ComplianceCheckerAgent extends BaseAgent {
    * Perform the main analysis
    */
   private async performAnalysis(_data: any): Promise<ComplianceCheckerResult> {
-    // Implementation would use LLM service in production
+    // Use LLM for intelligent analysis if available
+    if (this.llmService) {
+      try {
+        const prompt = `Analyze checks regulatory and standards compliance for ${_data.brandName}.
+
+Brand Context:
+- Brand Name: ${_data.brandName}
+- Brand URL: ${_data.brandUrl || 'Not specified'}
+- Industry: ${_data.context?.industry || 'Not specified'}
+- Target Market: ${_data.context?.targetMarket || 'Not specified'}
+
+Context from validation module focusing on quality assurance and validation.
+
+Previous Analysis Context:
+${_data.previousAnalyses?.length > 0 ? JSON.stringify(_data.previousAnalyses.map((a: any) => ({
+  type: a.type,
+  summary: a.summary,
+})), null, 2) : 'No previous analysis available'}
+
+Provide comprehensive analysis for: Checks regulatory and standards compliance
+
+Return as JSON matching this structure:
+{
+  "summary": "Overall analysis summary",
+  "findings": [
+    {
+      "type": "insight",
+      "description": "key finding",
+      "impact": "high|medium|low",
+      "confidence": 0-1
+    }
+  ],
+  "score": 0-10,
+  "recommendations": ["recommendation1", "recommendation2"],
+  "metadata": {
+    "analysisType": "compliance_checker",
+    "timestamp": "ISO timestamp"
+  }
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'compliance-checker');
+
+        if (response && response.summary) {
+          return {
+            summary: response.summary || 'Checks regulatory and standards compliance',
+            findings: response.findings || [],
+            score: response.score || 7.5,
+            confidence: response.confidence || 8,
+            recommendations: response.recommendations || [],
+            metadata: {
+              analysisType: 'compliance_checker',
+              timestamp: new Date().toISOString(),
+              ...response.metadata,
+            },
+          };
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to placeholder implementation
     const data = _data; // Alias for function body usage
     void data; // Mark as intentionally unused in placeholder
     // This is a placeholder implementation
 
     const analysis: ComplianceCheckerResult = {
-      summary: 'Analysis of regulatory compliance, standards, and requirements',
+      summary: 'Checks regulatory and standards compliance',
       findings: [
         {
           type: 'insight',

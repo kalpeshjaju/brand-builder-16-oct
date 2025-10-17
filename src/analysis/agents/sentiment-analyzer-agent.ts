@@ -86,14 +86,74 @@ export class SentimentAnalyzerAgent extends BaseAgent {
    * Perform the main analysis
    */
   private async performAnalysis(_data: any): Promise<SentimentAnalyzerResult> {
-    // Implementation would use LLM service in production
+    // Use LLM for intelligent analysis if available
+    if (this.llmService) {
+      try {
+        const prompt = `Analyze analyzes sentiment across brand touchpoints for ${_data.brandName}.
+
+Brand Context:
+- Brand Name: ${_data.brandName}
+- Brand URL: ${_data.brandUrl || 'Not specified'}
+- Industry: ${_data.context?.industry || 'Not specified'}
+- Target Market: ${_data.context?.targetMarket || 'Not specified'}
+
+Context from analysis module focusing on brand analysis and insights.
+
+Previous Analysis Context:
+${_data.previousAnalyses?.length > 0 ? JSON.stringify(_data.previousAnalyses.map((a: any) => ({
+  type: a.type,
+  summary: a.summary,
+})), null, 2) : 'No previous analysis available'}
+
+Provide comprehensive analysis for: Analyzes sentiment across brand touchpoints
+
+Return as JSON matching this structure:
+{
+  "summary": "Overall analysis summary",
+  "findings": [
+    {
+      "type": "insight",
+      "description": "key finding",
+      "impact": "high|medium|low",
+      "confidence": 0-1
+    }
+  ],
+  "score": 0-10,
+  "recommendations": ["recommendation1", "recommendation2"],
+  "metadata": {
+    "analysisType": "sentiment_analyzer",
+    "timestamp": "ISO timestamp"
+  }
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'sentiment-analyzer');
+
+        if (response && response.summary) {
+          return {
+            summary: response.summary || 'Analyzes sentiment across brand touchpoints',
+            findings: response.findings || [],
+            score: response.score || 7.5,
+            confidence: response.confidence || 8,
+            recommendations: response.recommendations || [],
+            metadata: {
+              analysisType: 'sentiment_analyzer',
+              timestamp: new Date().toISOString(),
+              ...response.metadata,
+            },
+          };
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to placeholder implementation
     const data = _data; // Alias for function body usage
-    void data; // Mark as intentionally unused in placeholder
     void data; // Mark as intentionally unused in placeholder
     // This is a placeholder implementation
 
     const analysis: SentimentAnalyzerResult = {
-      summary: 'Analysis of customer sentiment, emotions, and perceptions',
+      summary: 'Analyzes sentiment across brand touchpoints',
       findings: [
         {
           type: 'insight',
@@ -108,7 +168,6 @@ export class SentimentAnalyzerAgent extends BaseAgent {
       metadata: {
         analysisType: 'sentiment_analyzer',
         timestamp: new Date().toISOString(),
-        dataSource: data.brandUrl || 'manual_input',
       },
     };
 

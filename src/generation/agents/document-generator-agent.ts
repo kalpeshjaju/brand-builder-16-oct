@@ -86,13 +86,74 @@ export class DocumentGeneratorAgent extends BaseAgent {
    * Perform the main analysis
    */
   private async performAnalysis(_data: any): Promise<DocumentGeneratorResult> {
-    // Implementation would use LLM service in production
+    // Use LLM for intelligent analysis if available
+    if (this.llmService) {
+      try {
+        const prompt = `Analyze generates brand documents for ${_data.brandName}.
+
+Brand Context:
+- Brand Name: ${_data.brandName}
+- Brand URL: ${_data.brandUrl || 'Not specified'}
+- Industry: ${_data.context?.industry || 'Not specified'}
+- Target Market: ${_data.context?.targetMarket || 'Not specified'}
+
+Context from generation module focusing on content and creative assets.
+
+Previous Analysis Context:
+${_data.previousAnalyses?.length > 0 ? JSON.stringify(_data.previousAnalyses.map((a: any) => ({
+  type: a.type,
+  summary: a.summary,
+})), null, 2) : 'No previous analysis available'}
+
+Provide comprehensive analysis for: Generates brand documents
+
+Return as JSON matching this structure:
+{
+  "summary": "Overall analysis summary",
+  "findings": [
+    {
+      "type": "insight",
+      "description": "key finding",
+      "impact": "high|medium|low",
+      "confidence": 0-1
+    }
+  ],
+  "score": 0-10,
+  "recommendations": ["recommendation1", "recommendation2"],
+  "metadata": {
+    "analysisType": "document_generator",
+    "timestamp": "ISO timestamp"
+  }
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'document-generator');
+
+        if (response && response.summary) {
+          return {
+            summary: response.summary || 'Generates brand documents',
+            findings: response.findings || [],
+            score: response.score || 7.5,
+            confidence: response.confidence || 8,
+            recommendations: response.recommendations || [],
+            metadata: {
+              analysisType: 'document_generator',
+              timestamp: new Date().toISOString(),
+              ...response.metadata,
+            },
+          };
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to placeholder implementation
     const data = _data; // Alias for function body usage
     void data; // Mark as intentionally unused in placeholder
     // This is a placeholder implementation
 
     const analysis: DocumentGeneratorResult = {
-      summary: 'Analysis of document types, content, and format',
+      summary: 'Generates brand documents',
       findings: [
         {
           type: 'insight',
@@ -107,7 +168,6 @@ export class DocumentGeneratorAgent extends BaseAgent {
       metadata: {
         analysisType: 'document_generator',
         timestamp: new Date().toISOString(),
-        dataSource: data.brandUrl || 'manual_input',
       },
     };
 

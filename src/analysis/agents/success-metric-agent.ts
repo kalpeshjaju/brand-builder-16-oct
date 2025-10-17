@@ -86,14 +86,74 @@ export class SuccessMetricAgent extends BaseAgent {
    * Perform the main analysis
    */
   private async performAnalysis(_data: any): Promise<SuccessMetricResult> {
-    // Implementation would use LLM service in production
+    // Use LLM for intelligent analysis if available
+    if (this.llmService) {
+      try {
+        const prompt = `Analyze defines and tracks success metrics for ${_data.brandName}.
+
+Brand Context:
+- Brand Name: ${_data.brandName}
+- Brand URL: ${_data.brandUrl || 'Not specified'}
+- Industry: ${_data.context?.industry || 'Not specified'}
+- Target Market: ${_data.context?.targetMarket || 'Not specified'}
+
+Context from analysis module focusing on brand analysis and insights.
+
+Previous Analysis Context:
+${_data.previousAnalyses?.length > 0 ? JSON.stringify(_data.previousAnalyses.map((a: any) => ({
+  type: a.type,
+  summary: a.summary,
+})), null, 2) : 'No previous analysis available'}
+
+Provide comprehensive analysis for: Defines and tracks success metrics
+
+Return as JSON matching this structure:
+{
+  "summary": "Overall analysis summary",
+  "findings": [
+    {
+      "type": "insight",
+      "description": "key finding",
+      "impact": "high|medium|low",
+      "confidence": 0-1
+    }
+  ],
+  "score": 0-10,
+  "recommendations": ["recommendation1", "recommendation2"],
+  "metadata": {
+    "analysisType": "success_metric",
+    "timestamp": "ISO timestamp"
+  }
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'success-metric');
+
+        if (response && response.summary) {
+          return {
+            summary: response.summary || 'Defines and tracks success metrics',
+            findings: response.findings || [],
+            score: response.score || 7.5,
+            confidence: response.confidence || 8,
+            recommendations: response.recommendations || [],
+            metadata: {
+              analysisType: 'success_metric',
+              timestamp: new Date().toISOString(),
+              ...response.metadata,
+            },
+          };
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to placeholder implementation
     const data = _data; // Alias for function body usage
-    void data; // Mark as intentionally unused in placeholder
     void data; // Mark as intentionally unused in placeholder
     // This is a placeholder implementation
 
     const analysis: SuccessMetricResult = {
-      summary: 'Analysis of KPIs, metrics, and success measurement',
+      summary: 'Defines and tracks success metrics',
       findings: [
         {
           type: 'insight',
@@ -108,7 +168,6 @@ export class SuccessMetricAgent extends BaseAgent {
       metadata: {
         analysisType: 'success_metric',
         timestamp: new Date().toISOString(),
-        dataSource: data.brandUrl || 'manual_input',
       },
     };
 

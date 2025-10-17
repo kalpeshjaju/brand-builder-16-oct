@@ -86,13 +86,74 @@ export class PositioningStrategistAgent extends BaseAgent {
    * Perform the main analysis
    */
   private async performAnalysis(_data: any): Promise<PositioningStrategistResult> {
-    // Implementation would use LLM service in production
+    // Use LLM for intelligent analysis if available
+    if (this.llmService) {
+      try {
+        const prompt = `Analyze develops brand positioning strategy for ${_data.brandName}.
+
+Brand Context:
+- Brand Name: ${_data.brandName}
+- Brand URL: ${_data.brandUrl || 'Not specified'}
+- Industry: ${_data.context?.industry || 'Not specified'}
+- Target Market: ${_data.context?.targetMarket || 'Not specified'}
+
+Context from strategy module focusing on brand strategy and positioning.
+
+Previous Analysis Context:
+${_data.previousAnalyses?.length > 0 ? JSON.stringify(_data.previousAnalyses.map((a: any) => ({
+  type: a.type,
+  summary: a.summary,
+})), null, 2) : 'No previous analysis available'}
+
+Provide comprehensive analysis for: Develops brand positioning strategy
+
+Return as JSON matching this structure:
+{
+  "summary": "Overall analysis summary",
+  "findings": [
+    {
+      "type": "insight",
+      "description": "key finding",
+      "impact": "high|medium|low",
+      "confidence": 0-1
+    }
+  ],
+  "score": 0-10,
+  "recommendations": ["recommendation1", "recommendation2"],
+  "metadata": {
+    "analysisType": "positioning_strategist",
+    "timestamp": "ISO timestamp"
+  }
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'positioning-strategist');
+
+        if (response && response.summary) {
+          return {
+            summary: response.summary || 'Develops brand positioning strategy',
+            findings: response.findings || [],
+            score: response.score || 7.5,
+            confidence: response.confidence || 8,
+            recommendations: response.recommendations || [],
+            metadata: {
+              analysisType: 'positioning_strategist',
+              timestamp: new Date().toISOString(),
+              ...response.metadata,
+            },
+          };
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to placeholder implementation
     const data = _data; // Alias for function body usage
     void data; // Mark as intentionally unused in placeholder
     // This is a placeholder implementation
 
     const analysis: PositioningStrategistResult = {
-      summary: 'Analysis of positioning options, differentiation, and market fit',
+      summary: 'Develops brand positioning strategy',
       findings: [
         {
           type: 'insight',
