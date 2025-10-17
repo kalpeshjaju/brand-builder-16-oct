@@ -99,7 +99,7 @@ export class ClaudeLLMService implements LLMService {
   constructor(config: LLMServiceConfig = {}) {
     this.config = {
       apiKey: config.apiKey || process.env['ANTHROPIC_API_KEY'],
-      model: config.model || 'claude-3-5-sonnet-20241022',
+      model: config.model || 'claude-sonnet-4-5-20250929',
       temperature: config.temperature ?? 0.7,
       maxTokens: config.maxTokens || 4096,
       timeout: config.timeout || 60000,
