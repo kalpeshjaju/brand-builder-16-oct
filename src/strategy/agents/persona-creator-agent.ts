@@ -86,11 +86,100 @@ export class PersonaCreatorAgent extends BaseAgent {
    * Perform the main analysis
    */
   private async performAnalysis(_data: any): Promise<PersonaCreatorResult> {
-    // Implementation would use LLM service in production
-    const data = _data; // Alias for function body usage
-    void data; // Mark as intentionally unused in placeholder
-    // This is a placeholder implementation
+    // Use LLM for intelligent persona creation if available
+    if (this.llmService) {
+      try {
+        const prompt = `Create detailed customer personas for ${_data.brandName}.
 
+Brand Context:
+- Brand Name: ${_data.brandName}
+- Brand URL: ${_data.brandUrl || 'Not specified'}
+- Industry: ${_data.context?.industry || 'Not specified'}
+- Target Market: ${_data.context?.targetMarket || 'Not specified'}
+
+Previous Analysis Context:
+${_data.previousAnalyses?.length > 0 ? JSON.stringify(_data.previousAnalyses.map((a: any) => ({
+  type: a.type,
+  summary: a.summary,
+})), null, 2) : 'No previous analysis available'}
+
+Create 3-5 detailed customer personas including:
+
+For each persona:
+1. **Demographics**: Age, income, location, occupation, education
+2. **Psychographics**: Values, attitudes, interests, lifestyle
+3. **Behaviors**: Shopping habits, decision process, media consumption
+4. **Goals**: What they want to achieve
+5. **Pain Points**: Problems and frustrations
+6. **Motivations**: What drives their decisions
+7. **Objections**: Barriers to purchase
+8. **Preferred Channels**: Where they engage with brands
+
+Return as JSON matching this structure:
+{
+  "summary": "Overall analysis summary",
+  "personas": [
+    {
+      "name": "Persona Name",
+      "tagline": "One-line description",
+      "demographics": {
+        "age": "age range",
+        "income": "income range",
+        "location": "location type",
+        "occupation": "job type",
+        "education": "education level"
+      },
+      "psychographics": {
+        "values": ["value1", "value2"],
+        "interests": ["interest1", "interest2"],
+        "lifestyle": "lifestyle description"
+      },
+      "behaviors": {
+        "shopping": "shopping behavior",
+        "decisionProcess": "how they decide",
+        "mediaConsumption": ["channel1", "channel2"]
+      },
+      "goals": ["goal1", "goal2"],
+      "painPoints": ["pain1", "pain2"],
+      "motivations": ["motivation1", "motivation2"],
+      "objections": ["objection1", "objection2"],
+      "preferredChannels": ["channel1", "channel2"]
+    }
+  ],
+  "findings": [
+    {
+      "type": "insight",
+      "description": "key insight",
+      "impact": "high|medium|low",
+      "confidence": 0-1
+    }
+  ],
+  "recommendations": ["recommendation1", "recommendation2"]
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'persona-creation');
+
+        if (response.personas && Array.isArray(response.personas)) {
+          return {
+            summary: response.summary || 'Customer personas created',
+            findings: response.findings || [],
+            score: response.personas.length >= 3 ? 8.5 : 7.0,
+            confidence: 9,
+            recommendations: response.recommendations || [],
+            metadata: {
+              analysisType: 'persona_creator',
+              timestamp: new Date().toISOString(),
+              personaCount: response.personas.length,
+              personas: response.personas,
+            },
+          };
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to placeholder implementation
     const analysis: PersonaCreatorResult = {
       summary: 'Analysis of customer segments, behaviors, and needs',
       findings: [
