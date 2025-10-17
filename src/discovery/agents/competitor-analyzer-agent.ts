@@ -124,8 +124,62 @@ export class CompetitorAnalyzerAgent extends BaseAgent {
    * Analyze competitors
    */
   private async analyzeCompetitors(competitorData: any): Promise<CompetitorProfile[]> {
-    void competitorData; // Used in full implementation with LLM
-    // Example competitors - would use LLM and data in production
+    // Use LLM for intelligent competitor analysis if available
+    if (this.llmService && competitorData.competitors && competitorData.competitors.length > 0) {
+      try {
+        const prompt = `Analyze competitors for ${competitorData.brandName} in the ${competitorData.industry || 'target'} industry.
+
+Brand Name: ${competitorData.brandName}
+Industry: ${competitorData.industry || 'Unknown'}
+Competitors to analyze: ${competitorData.competitors.join(', ')}
+
+For each competitor, provide comprehensive analysis:
+- Competitor name
+- Type (direct/indirect/aspirational/substitute)
+- Estimated market share (%)
+- Market positioning
+- Key strengths (3-5)
+- Key weaknesses (3-5)
+- Opportunities for our brand (2-3)
+- Threats they pose (2-3)
+- Unique value proposition
+- Target segments
+- Pricing strategy (premium/competitive/budget/freemium)
+- Competitive moat (barriers to entry)
+- Vulnerabilities we can exploit
+
+Return as JSON array matching this structure:
+{
+  "competitors": [
+    {
+      "name": "competitor name",
+      "type": "direct|indirect|aspirational|substitute",
+      "marketShare": 0-100,
+      "positioning": "their positioning statement",
+      "strengths": ["strength1", "strength2"],
+      "weaknesses": ["weakness1", "weakness2"],
+      "opportunities": ["opportunity1", "opportunity2"],
+      "threats": ["threat1", "threat2"],
+      "uniqueValue": "what makes them unique",
+      "targetSegments": ["segment1", "segment2"],
+      "pricingStrategy": "premium|competitive|budget|freemium",
+      "competitiveMoat": ["moat1", "moat2"],
+      "vulnerabilities": ["vulnerability1", "vulnerability2"]
+    }
+  ]
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'competitive-analysis');
+
+        if (response.competitors && Array.isArray(response.competitors)) {
+          return response.competitors;
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to example competitors
     const competitors: CompetitorProfile[] = [
       {
         name: 'Market Leader Inc',
@@ -253,9 +307,61 @@ export class CompetitorAnalyzerAgent extends BaseAgent {
    */
   private async identifyOpportunities(
     competitors: CompetitorProfile[],
-    _dynamics: any
+    dynamics: any
   ): Promise<any> {
-    void _dynamics; // Used in full implementation
+    // Use LLM for intelligent opportunity analysis if available
+    if (this.llmService && competitors.length > 0) {
+      try {
+        const competitorSummary = competitors.map(c => ({
+          name: c.name,
+          type: c.type,
+          strengths: c.strengths,
+          weaknesses: c.weaknesses,
+          targetSegments: c.targetSegments,
+          positioning: c.positioning,
+        }));
+
+        const prompt = `Based on competitive analysis, identify strategic opportunities.
+
+Competitors Summary:
+${JSON.stringify(competitorSummary, null, 2)}
+
+Market Dynamics:
+- Competition Type: ${dynamics.competitionType}
+- Innovation Rate: ${dynamics.innovationRate}
+- Differentiation Level: ${dynamics.differentiationLevel}
+
+Identify opportunities in these categories:
+
+1. **Whitespace Opportunities**: Underserved segments, gaps in market coverage
+2. **Differentiation Opportunities**: Common competitor weaknesses to exploit
+3. **Positioning Opportunities**: How to position uniquely vs competitors
+4. **Strategic Opportunities**: Partnerships, acquisitions, expansion areas
+
+Return as JSON matching this structure:
+{
+  "whitespace": ["opportunity1", "opportunity2"],
+  "differentiation": ["opportunity1", "opportunity2"],
+  "positioning": ["opportunity1", "opportunity2"],
+  "strategic": ["opportunity1", "opportunity2"]
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'opportunity-analysis');
+
+        if (response.whitespace && response.differentiation) {
+          return {
+            whitespace: response.whitespace || [],
+            differentiation: response.differentiation || [],
+            positioning: response.positioning || [],
+            strategic: response.strategic || [],
+          };
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to basic opportunity analysis
     const opportunities = {
       whitespace: [] as string[],
       differentiation: [] as string[],

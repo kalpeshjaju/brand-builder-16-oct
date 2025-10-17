@@ -137,8 +137,51 @@ export class MarketResearcherAgent extends BaseAgent {
    * Analyze market segments
    */
   private async analyzeSegments(marketData: any): Promise<MarketSegment[]> {
-    void marketData; // Used in full implementation
-    // Example segments - would use LLM in production
+    // Use LLM for intelligent segment analysis if available
+    if (this.llmService) {
+      try {
+        const prompt = `Analyze market segments for the ${marketData.industry || 'target'} industry in ${marketData.geography || 'global'} markets.
+
+Industry: ${marketData.industry || 'Unknown'}
+Category: ${marketData.category || 'Unknown'}
+Geography: ${marketData.geography || 'Global'}
+Market Size: ${marketData.currentMarketSize || 'Unknown'}
+
+Identify 3-5 key market segments with:
+- Segment name
+- Estimated market size
+- Growth rate (% YoY)
+- Competition level (low/medium/high)
+- Attractiveness score (1-10)
+- Entry barriers
+- Key opportunities
+
+Return as JSON array matching this structure:
+{
+  "segments": [
+    {
+      "name": "segment name",
+      "size": "$XXB",
+      "growthRate": "XX% YoY",
+      "competitionLevel": "low|medium|high",
+      "attractiveness": 1-10,
+      "barriers": ["barrier1", "barrier2"],
+      "opportunities": ["opportunity1", "opportunity2"]
+    }
+  ]
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'market-segmentation');
+
+        if (response.segments && Array.isArray(response.segments)) {
+          return response.segments;
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to example segments
     const segments: MarketSegment[] = [
       {
         name: 'Enterprise',
@@ -176,7 +219,59 @@ export class MarketResearcherAgent extends BaseAgent {
    * Identify market trends
    */
   private async identifyTrends(marketData: any): Promise<MarketTrend[]> {
-    void marketData; // Used in full implementation
+    // Use LLM for intelligent trend analysis if available
+    if (this.llmService) {
+      try {
+        const prompt = `Identify key market trends for the ${marketData.industry || 'target'} industry in ${marketData.geography || 'global'} markets.
+
+Industry: ${marketData.industry || 'Unknown'}
+Category: ${marketData.category || 'Unknown'}
+Geography: ${marketData.geography || 'Global'}
+Current Year: 2025
+
+Identify 5-7 significant market trends across these types:
+- Technology trends
+- Consumer behavior trends
+- Regulatory/compliance trends
+- Economic trends
+- Social/cultural trends
+
+For each trend provide:
+- Name
+- Type (technology/consumer/regulatory/economic/social)
+- Impact level (low/medium/high)
+- Timeframe (short/medium/long term)
+- Relevance score (1-10)
+- Description
+- Business implications
+
+Return as JSON array matching this structure:
+{
+  "trends": [
+    {
+      "name": "trend name",
+      "type": "technology|consumer|regulatory|economic|social",
+      "impact": "low|medium|high",
+      "timeframe": "short|medium|long",
+      "relevance": 1-10,
+      "description": "detailed description",
+      "implications": ["implication1", "implication2"]
+    }
+  ]
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'market-trends');
+
+        if (response.trends && Array.isArray(response.trends)) {
+          // Sort by relevance
+          return response.trends.sort((a: MarketTrend, b: MarketTrend) => b.relevance - a.relevance);
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to example trends
     const trends: MarketTrend[] = [
       {
         name: 'AI Integration',

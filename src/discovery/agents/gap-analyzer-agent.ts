@@ -117,6 +117,74 @@ export class GapAnalyzerAgent extends BaseAgent {
    * Identify gaps in brand
    */
   private async identifyGaps(brandData: any): Promise<GapFinding[]> {
+    // Use LLM for intelligent gap analysis if available
+    if (this.llmService) {
+      try {
+        const prompt = `Analyze brand gaps for ${brandData.brandName}.
+
+Current State:
+- Positioning: ${brandData.currentState.positioning}
+- Capabilities: ${brandData.currentState.capabilities.join(', ') || 'Not specified'}
+- Resources: ${brandData.currentState.resources.join(', ') || 'Not specified'}
+- Performance: ${JSON.stringify(brandData.currentState.performance)}
+
+Desired State:
+- Vision: ${brandData.desiredState.vision}
+- Goals: ${brandData.desiredState.goals.join(', ') || 'Not specified'}
+- Target Position: ${brandData.desiredState.targetPosition}
+- Required Capabilities: ${brandData.desiredState.requiredCapabilities.join(', ') || 'Not specified'}
+
+Market Context:
+- Competitors: ${brandData.market.competitors.join(', ') || 'Not specified'}
+- Customer Expectations: ${brandData.market.customerExpectations.join(', ') || 'Not specified'}
+
+Identify gaps between current and desired state across these categories:
+1. **Strategy Gaps**: Missing positioning, unclear vision, strategic direction
+2. **Capability Gaps**: Skills, resources, processes needed but missing
+3. **Market Gaps**: Market presence, brand awareness, customer reach
+4. **Perception Gaps**: How brand is perceived vs how it wants to be perceived
+5. **Experience Gaps**: Customer experience inconsistencies
+6. **Content Gaps**: Content marketing and communication gaps
+
+For each gap provide:
+- Type (strategy/capability/market/perception/experience/content)
+- Severity (critical/high/medium/low)
+- Current state description
+- Desired state description
+- Gap description
+- Impact on business
+- Effort to close (low/medium/high)
+- Priority (1-10)
+- Recommendation
+
+Return as JSON array matching this structure:
+{
+  "gaps": [
+    {
+      "type": "strategy|capability|market|perception|experience|content",
+      "severity": "critical|high|medium|low",
+      "current": "current state",
+      "desired": "desired state",
+      "gap": "gap description",
+      "impact": "impact description",
+      "effort": "low|medium|high",
+      "priority": 1-10,
+      "recommendation": "recommendation"
+    }
+  ]
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'gap-analysis');
+
+        if (response.gaps && Array.isArray(response.gaps)) {
+          return response.gaps;
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to basic gap identification
     const gaps: GapFinding[] = [];
 
     // Strategy gaps
