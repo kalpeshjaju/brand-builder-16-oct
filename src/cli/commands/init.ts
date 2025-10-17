@@ -6,16 +6,30 @@ import chalk from 'chalk';
 import ora from 'ora';
 
 export async function initCommand(options: InitCommandOptions): Promise<void> {
+  const { brand, industry, category } = options;
+
+  // Validate brand name before starting spinner
+  if (!brand || brand.trim() === '') {
+    throw new Error('Brand name is required');
+  }
+
   const spinner = ora('Initializing brand workspace...').start();
 
   try {
-    const { brand, industry, category } = options;
-
     logger.info('Initializing workspace', { brand });
 
     // Create workspace directories
     const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
     await FileSystemUtils.ensureDir(workspacePath);
+
+    // User-facing directories (for documents and outputs)
+    await FileSystemUtils.ensureDir(`${workspacePath}/inputs`);
+    await FileSystemUtils.ensureDir(`${workspacePath}/resources`);
+    await FileSystemUtils.ensureDir(`${workspacePath}/documents`);
+    await FileSystemUtils.ensureDir(`${workspacePath}/outputs`);
+    await FileSystemUtils.ensureDir(`${workspacePath}/state`);
+
+    // Internal directories (for data, cache, logs)
     await FileSystemUtils.ensureDir(`${workspacePath}/data`);
     await FileSystemUtils.ensureDir(`${workspacePath}/cache`);
     await FileSystemUtils.ensureDir(`${workspacePath}/logs`);
@@ -37,7 +51,7 @@ export async function initCommand(options: InitCommandOptions): Promise<void> {
       version: '1.0.0',
     };
 
-    await FileSystemUtils.writeJSON(`${workspacePath}/config.json`, config);
+    await FileSystemUtils.writeJSON(`${workspacePath}/brand-config.json`, config);
 
     // Create initial context state
     const contextState = {

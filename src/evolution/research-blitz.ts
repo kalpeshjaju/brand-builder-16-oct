@@ -356,7 +356,7 @@ Format as JSON array with keys: gap, description, evidence, opportunitySize, con
         return [];
       }
 
-      return parsed.map((item: unknown) => {
+      return parsed.map((item: any) => {
         const obj = item as Record<string, unknown>;
         return {
           gap: (obj['gap'] as string) || 'Unknown gap',
@@ -411,7 +411,7 @@ Return 5-7 contradictions as JSON array with keys: what, evidence, implication, 
         return [];
       }
 
-      return parsed.map((item: unknown) => {
+      return parsed.map((item: any) => {
         const obj = item as Record<string, unknown>;
         return {
           what: (obj['what'] as string) || '',
@@ -520,7 +520,7 @@ Format as JSON array with keys: trend, description, relevance, source, date`;
         return [];
       }
 
-      return parsed.map((item: unknown) => {
+      return parsed.map((item: any) => {
         const obj = item as Record<string, unknown>;
         return {
           trend: (obj['trend'] as string) || '',

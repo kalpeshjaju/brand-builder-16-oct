@@ -37,7 +37,7 @@ export interface WebFetchOptions {
 
 const DEFAULT_OPTIONS: Required<WebFetchOptions> = {
   timeout: 10000,
-  maxContentLength: 500000, // 500KB
+  maxContentLength: 5000000, // 5MB (increased from 500KB for modern websites)
   useCache: true,
   cacheDir: './.cache/web-fetcher',
   retries: 3,
