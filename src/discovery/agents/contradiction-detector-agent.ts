@@ -119,6 +119,57 @@ export class ContradictionDetectorAgent extends BaseAgent {
    * Detect contradictions in brand content
    */
   private async detectContradictions(content: any): Promise<ContradictionFinding[]> {
+    // Use LLM for intelligent contradiction detection if available
+    if (this.llmService) {
+      try {
+        const prompt = `Analyze brand content for contradictions and inconsistencies.
+
+Brand Content:
+- Claims: ${JSON.stringify(content.claims)}
+- Evidence: ${JSON.stringify(content.evidence)}
+- Promises: ${JSON.stringify(content.promises)}
+- Customer Experiences: ${JSON.stringify(content.experiences)}
+
+Identify contradictions in these categories:
+1. **Claim vs Evidence**: Brand claims that contradict available evidence
+2. **Internal Inconsistencies**: Conflicting messages within brand content
+3. **Promise vs Delivery**: Promises made that don't match actual delivery
+4. **Message vs Experience**: Marketing messages that contradict customer experiences
+
+For each contradiction found:
+- Clearly state the claim and the contradicting evidence
+- Assess severity (critical/high/medium/low)
+- Explain the contradiction
+- Describe potential impact on brand trust
+- Recommend specific fixes
+
+Return as JSON array matching this structure:
+{
+  "contradictions": [
+    {
+      "type": "claim-vs-evidence|internal-inconsistency|promise-vs-delivery|message-vs-experience",
+      "severity": "critical|high|medium|low",
+      "claim": "the specific claim made",
+      "evidence": "the contradicting evidence",
+      "source": "where this was found",
+      "explanation": "why this is a contradiction",
+      "impact": "impact on brand credibility",
+      "recommendation": "how to fix this"
+    }
+  ]
+}`;
+
+        const response = await this.llmService.analyze(prompt, 'contradiction-detection');
+
+        if (response.contradictions && Array.isArray(response.contradictions)) {
+          return response.contradictions;
+        }
+      } catch (error) {
+        this.log(`LLM analysis failed, using fallback: ${error}`, 'warn');
+      }
+    }
+
+    // Fallback to rule-based detection
     const contradictions: ContradictionFinding[] = [];
 
     // Type 1: Claim vs Evidence contradictions
