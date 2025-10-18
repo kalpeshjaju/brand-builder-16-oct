@@ -7,7 +7,8 @@
  * FROM: Horizon Brand Builder
  */
 
-import type { BrandConfiguration, ProjectTimeline } from '../../types/genesis-types.js';
+import type { BrandConfiguration } from '../../types/brand-types.js';
+import type { ProjectTimeline } from '../../types/genesis-types.js';
 
 /**
  * 64 Generic Deliverables across 5 phases
