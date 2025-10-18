@@ -7,7 +7,12 @@ import ora from 'ora';
 import { spawn } from 'child_process';
 import { platform } from 'os';
 
-const client = new OracleClient();
+/**
+ * Get or create OracleClient instance (lazy initialization)
+ */
+function getClient(): OracleClient {
+  return new OracleClient();
+}
 
 /**
  * Start ORACLE service
@@ -16,6 +21,7 @@ export async function startOracleCommand(): Promise<void> {
   console.log(chalk.bold('\n🚀 Starting ORACLE service...\n'));
 
   const spinner = ora('Checking if service is already running...').start();
+  const client = getClient();
 
   // Check if already running
   const isRunning = await client.isHealthy();
@@ -108,6 +114,7 @@ export async function stopOracleCommand(): Promise<void> {
   console.log(chalk.bold('\n🔒 Stopping ORACLE service...\n'));
 
   const spinner = ora('Checking service status...').start();
+  const client = getClient();
 
   const isRunning = await client.isHealthy();
 
@@ -134,6 +141,7 @@ export async function stopOracleCommand(): Promise<void> {
  */
 export async function statusOracleCommand(): Promise<void> {
   const spinner = ora('Checking ORACLE service status...').start();
+  const client = getClient();
 
   try {
     const isHealthy = await client.isHealthy();
@@ -184,6 +192,7 @@ export async function statusOracleCommand(): Promise<void> {
 export async function reindexOracleCommand(options: { brand: string }): Promise<void> {
   const { brand } = options;
   const spinner = ora('Reindexing documents...').start();
+  const client = getClient();
 
   try {
     // Check if service is running
@@ -222,6 +231,7 @@ export async function searchOracleCommand(
   options: { brand?: string; topK?: string; noRerank?: boolean }
 ): Promise<void> {
   const spinner = ora('Searching...').start();
+  const client = getClient();
 
   try {
     // Check if service is running
@@ -280,6 +290,7 @@ export async function searchOracleCommand(
  */
 export async function statsOracleCommand(options: { brand: string }): Promise<void> {
   const spinner = ora('Loading statistics...').start();
+  const client = getClient();
 
   try {
     // Check if service is running

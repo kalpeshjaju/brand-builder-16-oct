@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { ContextManager } from '../../../src/library/context-manager.js';
 import { FileSystemUtils } from '../../../src/utils/index.js';
-import { unlink } from 'fs/promises';
+import { rm } from 'fs/promises';
 
 describe('ContextManager', () => {
   const testBrand = 'test-brand-' + Date.now();
@@ -17,10 +17,9 @@ describe('ContextManager', () => {
   });
 
   afterEach(async () => {
-    // Clean up test workspace
+    // Clean up entire test workspace directory
     try {
-      const contextPath = `${workspacePath}/data/context-state.json`;
-      await unlink(contextPath);
+      await rm(workspacePath, { recursive: true, force: true });
     } catch {
       // Ignore cleanup errors
     }

@@ -122,10 +122,12 @@ export class FileSystemUtils {
 
   /**
    * Get brand workspace path
+   * Uses ~/.brandos/ for stable location across different CWDs
    */
   static getBrandWorkspacePath(brandName: string): string {
     const sanitized = brandName.toLowerCase().replace(/\s+/g, '-');
-    return this.resolvePath('.brandos', sanitized);
+    const homeDir = process.env['HOME'] || process.env['USERPROFILE'] || process.cwd();
+    return join(homeDir, '.brandos', sanitized);
   }
 
   /**

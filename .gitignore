@@ -45,6 +45,9 @@ yarn-error.log*
 !.brandos/config/
 !.brandos/.gitkeep
 
+# Oracle service workspaces
+oracle-service/.brandos/
+
 # Outputs (generated files)
 outputs/*/
 !outputs/.gitkeep
