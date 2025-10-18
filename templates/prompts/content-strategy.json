@@ -1,0 +1,62 @@
+{
+  "id": "content-strategy",
+  "name": "Content Strategy & Editorial Calendar",
+  "description": "Develop comprehensive content strategy with themes, topics, formats, and distribution channels aligned to brand goals and audience needs.",
+  "category": "synthesis",
+  "version": "1.0.0",
+  "active": true,
+  "systemPrompt": "You are a content strategist who develops comprehensive content plans that build brands, engage audiences, and drive business results.\n\nYour approach:\n- Audience-first: Start with audience needs and content preferences\n- Strategic: Align content to brand goals and customer journey stages\n- Multi-channel: Consider owned, earned, and paid content opportunities\n- Scalable: Create frameworks that can be executed consistently\n- Data-informed: Base recommendations on content performance insights\n\nYou create content strategies that balance brand storytelling, audience value, and business objectives across multiple channels and formats.",
+  "userPromptTemplate": "Develop a content strategy for {{brandName}} in the {{industry}} industry.\n\n**Brand Context:**\n{{brandContext}}\n\n**Target Audience:**\n{{targetAudience}}\n\n**Business Goals:**\n{{businessGoals}}\n\n**Current Content:**\n{{currentContent}}\n\n**Instructions:**\nCreate a comprehensive content strategy framework.\n\nReturn ONLY valid JSON in this exact structure:\n\n```json\n{\n  \"contentMission\": \"Why we create content and what role it plays in brand strategy (2-3 sentences)\",\n  \"contentPillars\": [\n    {\n      \"pillar\": \"Pillar name (e.g., Education, Inspiration, Community)\",\n      \"description\": \"What this pillar covers and why it matters\",\n      \"audienceValue\": \"What audience gets from this content\",\n      \"brandValue\": \"What brand achieves through this content\",\n      \"exampleTopics\": [\"Topic 1\", \"Topic 2\", \"Topic 3\"]\n    }\n  ],\n  \"contentThemes\": [\n    {\n      \"theme\": \"Quarterly or monthly theme\",\n      \"description\": \"What this theme explores\",\n      \"pillarAlignment\": \"Which content pillars this supports\",\n      \"keyMessages\": [\"Message 1\", \"Message 2\"],\n      \"contentIdeas\": [\"Idea 1\", \"Idea 2\", \"Idea 3\"]\n    }\n  ],\n  \"formatStrategy\": {\n    \"primaryFormats\": [\n      {\n        \"format\": \"Format name (e.g., Blog Posts, Video, Social)\",\n        \"frequency\": \"How often to publish\",\n        \"purpose\": \"Why this format works for our brand\",\n        \"distribution\": \"Where and how to distribute\",\n        \"exampleSeries\": [\"Series idea 1\", \"Series idea 2\"]\n      }\n    ],\n    \"experimentalFormats\": [\n      \"Format to test 1\",\n      \"Format to test 2\"\n    ]\n  },\n  \"channelStrategy\": {\n    \"ownedChannels\": [\n      {\n        \"channel\": \"Channel name (e.g., Blog, Email, YouTube)\",\n        \"role\": \"Primary role in content ecosystem\",\n        \"contentTypes\": [\"Type 1\", \"Type 2\"],\n        \"frequency\": \"Publishing frequency\",\n        \"successMetrics\": [\"Metric 1\", \"Metric 2\"]\n      }\n    ],\n    \"earnedChannels\": [\n      {\n        \"channel\": \"PR, partnerships, guest content\",\n        \"strategy\": \"How to leverage this channel\"\n      }\n    ],\n    \"paidChannels\": [\n      {\n        \"channel\": \"Paid social, content distribution\",\n        \"strategy\": \"How to amplify content\"\n      }\n    ]\n  },\n  \"audienceJourney\": {\n    \"awareness\": {\n      \"contentTypes\": [\"Content type 1\", \"Content type 2\"],\n      \"topics\": [\"Topic 1\", \"Topic 2\"],\n      \"goals\": [\"Goal 1\", \"Goal 2\"]\n    },\n    \"consideration\": {\n      \"contentTypes\": [\"Content type 1\", \"Content type 2\"],\n      \"topics\": [\"Topic 1\", \"Topic 2\"],\n      \"goals\": [\"Goal 1\", \"Goal 2\"]\n    },\n    \"decision\": {\n      \"contentTypes\": [\"Content type 1\", \"Content type 2\"],\n      \"topics\": [\"Topic 1\", \"Topic 2\"],\n      \"goals\": [\"Goal 1\", \"Goal 2\"]\n    },\n    \"retention\": {\n      \"contentTypes\": [\"Content type 1\", \"Content type 2\"],\n      \"topics\": [\"Topic 1\", \"Topic 2\"],\n      \"goals\": [\"Goal 1\", \"Goal 2\"]\n    }\n  },\n  \"editorialGuidelines\": {\n    \"voice\": \"Content voice description\",\n    \"tone\": \"Tone guidelines for different contexts\",\n    \"style\": [\"Style guideline 1\", \"Style guideline 2\"],\n    \"doAndDonts\": {\n      \"do\": [\"Do 1\", \"Do 2\", \"Do 3\"],\n      \"dont\": [\"Don't 1\", \"Don't 2\", \"Don't 3\"]\n    }\n  },\n  \"measurementFramework\": {\n    \"primaryKPIs\": [\"KPI 1\", \"KPI 2\", \"KPI 3\"],\n    \"secondaryMetrics\": [\"Metric 1\", \"Metric 2\"],\n    \"reportingCadence\": \"How often to review performance\"\n  },\n  \"quickWins\": [\n    \"Quick win 1: Low-effort, high-impact content opportunity\",\n    \"Quick win 2: Low-effort, high-impact content opportunity\",\n    \"Quick win 3: Low-effort, high-impact content opportunity\"\n  ]\n}\n```\n\nEnsure strategy is actionable, aligned to brand goals, and realistic to execute.",
+  "temperature": 0.1,
+  "maxTokens": 4500,
+  "tags": ["content", "strategy", "editorial", "multi-channel"],
+  "author": "Brand Builder Pro",
+  "changelog": [
+    "v1.0.0: Initial content strategy and editorial calendar prompt"
+  ],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "The name of the brand",
+      "required": true,
+      "type": "string",
+      "example": "Revaa"
+    },
+    {
+      "name": "industry",
+      "description": "The industry or market category",
+      "required": true,
+      "type": "string",
+      "example": "sustainable period care"
+    },
+    {
+      "name": "brandContext",
+      "description": "Brand positioning, values, personality, messaging",
+      "required": true,
+      "type": "string",
+      "example": "Positioning: ..., Values: ..., Voice: ..."
+    },
+    {
+      "name": "targetAudience",
+      "description": "Primary audience with content preferences",
+      "required": true,
+      "type": "string",
+      "example": "Eco-conscious women who consume content via Instagram, blogs..."
+    },
+    {
+      "name": "businessGoals",
+      "description": "Brand awareness, lead generation, community building, etc.",
+      "required": true,
+      "type": "string",
+      "example": "Build awareness, educate market, drive trial..."
+    },
+    {
+      "name": "currentContent",
+      "description": "Existing content assets and performance (if any)",
+      "required": false,
+      "type": "string",
+      "default": "Starting from scratch",
+      "example": "Blog with 20 posts, Instagram with 5K followers..."
+    }
+  ]
+}

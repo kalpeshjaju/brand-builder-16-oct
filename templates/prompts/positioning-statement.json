@@ -1,0 +1,56 @@
+{
+  "id": "positioning-statement",
+  "name": "Positioning Statement Generator",
+  "description": "Create compelling positioning statements that clearly articulate the brand's unique market position, target audience, and differentiation.",
+  "category": "generation",
+  "version": "1.0.0",
+  "active": true,
+  "systemPrompt": "You are a brand positioning expert who crafts clear, compelling positioning statements that define how brands compete and win in the market.\n\nYour approach:\n- Strategic: Position brand in a way that creates competitive advantage\n- Clear: Use precise language that avoids jargon\n- Differentiated: Ensure positioning is distinct from competitors\n- Authentic: Align with genuine brand capabilities and DNA\n- Memorable: Create statements that stick and guide decisions\n\nYou use the classic positioning framework: For [target audience] who [need/desire], [brand] is the [category] that [unique benefit] because [reason to believe].",
+  "userPromptTemplate": "Create a positioning statement for {{brandName}} in the {{industry}} industry.\n\n**Brand Information:**\n{{brandInfo}}\n\n**Target Audience:**\n{{targetAudience}}\n\n**Competitive Context:**\n{{competitiveContext}}\n\n**Instructions:**\nDevelop a comprehensive positioning framework with multiple positioning options.\n\nReturn ONLY valid JSON in this exact structure:\n\n```json\n{\n  \"primaryPositioning\": {\n    \"statement\": \"Complete positioning statement (3-4 sentences)\",\n    \"framework\": {\n      \"targetAudience\": \"For [specific target audience]\",\n      \"needDesire\": \"Who [specific need or desire]\",\n      \"brand\": \"{{brandName}}\",\n      \"category\": \"Is the [frame of reference/category]\",\n      \"uniqueBenefit\": \"That [point of differentiation]\",\n      \"reasonToBelieve\": \"Because [proof/reason to believe]\"\n    },\n    \"oneLinePitch\": \"Elevator pitch version (1 sentence)\",\n    \"taglineOptions\": [\n      \"Tagline option 1 (5-7 words)\",\n      \"Tagline option 2 (5-7 words)\",\n      \"Tagline option 3 (5-7 words)\"\n    ]\n  },\n  \"alternativePositionings\": [\n    {\n      \"name\": \"Alternative approach name\",\n      \"statement\": \"Alternative positioning statement\",\n      \"rationale\": \"Why this positioning could work\",\n      \"tradeoffs\": \"What you gain/lose with this approach\"\n    }\n  ],\n  \"positioningPillars\": [\n    {\n      \"pillar\": \"Core pillar 1\",\n      \"description\": \"What this pillar means and why it matters\",\n      \"evidence\": \"Proof points that support this pillar\"\n    },\n    {\n      \"pillar\": \"Core pillar 2\",\n      \"description\": \"What this pillar means and why it matters\",\n      \"evidence\": \"Proof points that support this pillar\"\n    },\n    {\n      \"pillar\": \"Core pillar 3\",\n      \"description\": \"What this pillar means and why it matters\",\n      \"evidence\": \"Proof points that support this pillar\"\n    }\n  ],\n  \"competitiveDifferentiation\": {\n    \"vsCompetitorA\": \"How we're different from primary competitor\",\n    \"vsCompetitorB\": \"How we're different from secondary competitor\",\n    \"vsCategory\": \"How we're different from category norms\"\n  },\n  \"messagingHierarchy\": {\n    \"overarching\": \"Single most important message\",\n    \"supporting\": [\n      \"Supporting message 1\",\n      \"Supporting message 2\",\n      \"Supporting message 3\"\n    ],\n    \"proofPoints\": [\n      \"Proof point 1\",\n      \"Proof point 2\",\n      \"Proof point 3\"\n    ]\n  }\n}\n```\n\nEnsure positioning is specific, differentiated, and grounded in brand truth.",
+  "temperature": 0.0,
+  "maxTokens": 3000,
+  "seed": 42,
+  "tags": ["positioning", "strategy", "messaging", "differentiation"],
+  "author": "Brand Builder Pro",
+  "changelog": [
+    "v1.0.0: Initial positioning statement generator"
+  ],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "The name of the brand",
+      "required": true,
+      "type": "string",
+      "example": "Revaa"
+    },
+    {
+      "name": "industry",
+      "description": "The industry or market category",
+      "required": true,
+      "type": "string",
+      "example": "sustainable period care"
+    },
+    {
+      "name": "brandInfo",
+      "description": "Brand purpose, mission, values, product offerings",
+      "required": true,
+      "type": "string",
+      "example": "Purpose: ..., Mission: ..., Products: ..."
+    },
+    {
+      "name": "targetAudience",
+      "description": "Primary target audience description",
+      "required": true,
+      "type": "string",
+      "example": "Eco-conscious women aged 25-40..."
+    },
+    {
+      "name": "competitiveContext",
+      "description": "Key competitors and competitive landscape",
+      "required": false,
+      "type": "string",
+      "default": "",
+      "example": "Competing against Thinx, LOLA, Cora..."
+    }
+  ]
+}
