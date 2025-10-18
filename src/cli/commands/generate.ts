@@ -166,7 +166,7 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
 
     // Load brand config
     const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
-    const configPath = `${workspacePath}/config.json`;
+    const configPath = `${workspacePath}/brand-config.json`;
 
     if (!(await FileSystemUtils.fileExists(configPath))) {
       throw new Error(`Brand workspace not found. Run: brandos init --brand "${brand}"`);

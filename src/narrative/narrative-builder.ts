@@ -61,7 +61,7 @@ export class NarrativeBuilder {
    */
   async loadContext(): Promise<void> {
     const workspacePath = FileSystemUtils.getBrandWorkspacePath(this.brandContext.brandName);
-    const configPath = path.join(workspacePath, 'config.json');
+    const configPath = path.join(workspacePath, 'brand-config.json');
 
     if (await FileSystemUtils.fileExists(configPath)) {
       this.brandContext.config = await FileSystemUtils.readJSON(configPath);
