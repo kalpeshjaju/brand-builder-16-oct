@@ -35,3 +35,6 @@ export * from './evolution-types.js';
 
 // Presentation types
 export * from './presentation-types.js';
+
+// Validation types
+export * from './validation-types.js';
