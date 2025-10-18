@@ -4,6 +4,7 @@ import type { BrandStrategy, BrandConfiguration, GenerateCommandOptions } from '
 import { LLMService } from '../../genesis/llm-service.js';
 import { FileSystemUtils, logger, FormattingUtils, parseJSON, isBrandStrategyLike } from '../../utils/index.js';
 import { HTMLGenerator } from '../../presentation/html-generator.js';
+import { createIngestionService } from '../../ingestion/index.js';
 import chalk from 'chalk';
 import ora from 'ora';
 
@@ -155,13 +156,13 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
   const spinner = ora('Generating brand strategy...').start();
 
   try {
-    const { brand, mode, output, format } = options;
+    const { brand, mode, output, format, useContext = false } = options;
 
     if (!brand) {
       throw new Error('Brand name is required. Use --brand flag.');
     }
 
-    logger.info('Generate command', { brand, mode });
+    logger.info('Generate command', { brand, mode, useContext });
 
     // Load brand config
     const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
@@ -173,10 +174,47 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
 
     const config = await FileSystemUtils.readJSON<BrandConfiguration>(configPath);
 
+    // Build base context
+    let contextText = `Brand Configuration:\n${JSON.stringify(config, null, 2)}\n\nMode: ${mode}`;
+
+    // Retrieve additional context from ORACLE if requested
+    if (useContext) {
+      spinner.text = 'Retrieving brand context from ORACLE...';
+
+      try {
+        const ingestion = createIngestionService();
+        const oracleContext = await ingestion.searchContext(
+          brand,
+          `What is ${brand}'s purpose, mission, values, positioning, and key differentiators?`,
+          2000 // Max tokens for context
+        );
+
+        if (oracleContext && oracleContext.length > 0) {
+          contextText += `\n\n**Additional Brand Context from Documents:**\n${oracleContext}`;
+          logger.info('Retrieved context from ORACLE', {
+            brand,
+            contextLength: oracleContext.length,
+          });
+        } else {
+          logger.warn('No context found in ORACLE', { brand });
+          spinner.text += ' (no indexed documents found)';
+        }
+      } catch (error) {
+        logger.warn('ORACLE context retrieval failed', {
+          error: (error as Error).message,
+        });
+        // Continue without ORACLE context
+      }
+    }
+
+    contextText += `\n\nGenerate a comprehensive, specific strategy for ${brand}.`;
+
     // Generate strategy using LLM with prompt registry
     const llm = new LLMService();
 
-    spinner.text = `Generating ${mode} strategy using prompt registry...`;
+    spinner.text = useContext
+      ? `Generating ${mode} strategy with brand context...`
+      : `Generating ${mode} strategy using prompt registry...`;
 
     // Use the brand-strategy-gen prompt from registry
     const response = await llm.promptFromRegistry(
@@ -184,7 +222,7 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
       {
         brandName: brand,
         industry: config.industry || config.category || 'general',
-        context: `Brand Configuration:\n${JSON.stringify(config, null, 2)}\n\nMode: ${mode}\n\nGenerate a comprehensive, specific strategy for ${brand}.`
+        context: contextText
       }
     );
 

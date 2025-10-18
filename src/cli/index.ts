@@ -71,6 +71,7 @@ program
   .option('-m, --mode <type>', 'Mode (fast|professional|research)', 'professional')
   .option('-o, --output <path>', 'Output file path')
   .option('-f, --format <type>', 'Output format (json|markdown|html|both)', 'markdown')
+  .option('-c, --use-context', 'Enable RAG mode (retrieve context from ORACLE)', false)
   .action(generateCommand);
 
 // Narrative command

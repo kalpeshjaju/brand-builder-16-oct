@@ -38,6 +38,7 @@ export interface GenerateCommandOptions extends BaseCommandOptions {
   mode?: 'fast' | 'professional' | 'research';
   output?: string;
   format?: 'json' | 'markdown' | 'html' | 'both';
+  useContext?: boolean; // Enable RAG mode (retrieve context from ORACLE)
 }
 
 export interface AuditCommandOptions extends BaseCommandOptions {
