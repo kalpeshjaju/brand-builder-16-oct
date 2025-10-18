@@ -12,6 +12,7 @@ import { contextCommand } from './commands/context.js';
 import { ingestCommand } from './commands/ingest.js';
 import { evolveCommand } from './commands/evolve.js';
 import { narrativeCommand } from './commands/narrative.js';
+import { briefCommand } from './commands/brief.js';
 import {
   listPromptsCommand,
   showPromptCommand,
@@ -80,6 +81,17 @@ program
   .option('-o, --output <path>', 'Output file path (without extension)')
   .option('-f, --format <type>', 'Output format (html|json|both)', 'html')
   .action(narrativeCommand);
+
+// Brief command
+program
+  .command('brief')
+  .description('Generate agency creative brief')
+  .option('-b, --brand <name>', 'Brand name')
+  .option('-i, --input <path>', 'Strategy file path')
+  .option('-o, --output <path>', 'Output file path (without extension)')
+  .option('-f, --format <type>', 'Output format (json|html|markdown)', 'json')
+  .option('-d, --detail <level>', 'Detail level (essential|standard|comprehensive)', 'standard')
+  .action(briefCommand);
 
 // Audit command
 program

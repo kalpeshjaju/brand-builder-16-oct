@@ -38,3 +38,6 @@ export * from './presentation-types.js';
 
 // Validation types
 export * from './validation-types.js';
+
+// Brief types
+export * from './brief-types.js';

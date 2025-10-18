@@ -45,34 +45,4 @@ export interface NarrativeStructure {
   };
 }
 
-export interface AgencyBrief {
-  brandName: string;
-  brandIdentity: {
-    purpose: string;
-    mission: string;
-    vision: string;
-    values: string[];
-  };
-  visualIdentity: {
-    personalityTraits: string[];
-    voiceAndTone: {
-      voice: string;
-      toneAttributes: string[];
-    };
-    colorDirection?: string;
-    typographyDirection?: string;
-    imageryDirection?: string;
-  };
-  brandRequirements: {
-    logoRequirements?: string[];
-    packagingRequirements?: string[];
-    websiteRequirements?: string[];
-    marketingMaterialRequirements?: string[];
-  };
-  messaging: {
-    positioning: string;
-    keyMessages: string[];
-    differentiators: string[];
-  };
-  targetAudience?: string;
-}
+// AgencyBrief has been moved to brief-types.ts for the comprehensive brief system
