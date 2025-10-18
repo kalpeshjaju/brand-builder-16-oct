@@ -4,7 +4,7 @@ Generates vector embeddings using Sentence Transformers
 """
 
 from sentence_transformers import SentenceTransformer
-from typing import List, Union
+from typing import List, Union, Optional
 import numpy as np
 from config import settings
 
@@ -98,7 +98,7 @@ class EmbeddingService:
 
 
 # Singleton instance
-_embedding_service: EmbeddingService | None = None
+_embedding_service: Optional[EmbeddingService] = None
 
 
 def get_embedding_service() -> EmbeddingService:

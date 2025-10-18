@@ -4,7 +4,7 @@ Cross-encoder for two-stage retrieval (reranking)
 """
 
 from sentence_transformers import CrossEncoder
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from config import settings
 
 
@@ -81,7 +81,7 @@ class RerankerService:
 
 
 # Singleton instance
-_reranker_service: RerankerService | None = None
+_reranker_service: Optional[RerankerService] = None
 
 
 def get_reranker_service() -> RerankerService:
