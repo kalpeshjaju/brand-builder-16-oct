@@ -1,6 +1,6 @@
 // File system utilities
 
-import { mkdir, writeFile, readFile, access } from 'fs/promises';
+import { mkdir, writeFile, readFile, access, readdir, stat } from 'fs/promises';
 import { dirname, resolve, join } from 'path';
 import { createHash } from 'crypto';
 
@@ -36,6 +36,45 @@ export class FileSystemUtils {
         `Failed to write JSON file at ${filePath}\n` +
         `Reason: ${(error as Error).message}\n` +
         `Fix: Ensure the directory exists and you have write permissions.`
+      );
+    }
+  }
+
+  /**
+   * Write plain text file
+   */
+  static async writeFile(filePath: string, content: string): Promise<void> {
+    const dir = dirname(filePath);
+    await this.ensureDir(dir);
+
+    try {
+      await writeFile(filePath, content, 'utf-8');
+    } catch (error) {
+      throw new Error(
+        `Failed to write file at ${filePath}\n` +
+        `Reason: ${(error as Error).message}\n` +
+        `Fix: Ensure the directory exists and you have write permissions.`
+      );
+    }
+  }
+
+  /**
+   * Read plain text file
+   */
+  static async readFile(filePath: string): Promise<string> {
+    try {
+      return await readFile(filePath, 'utf-8');
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new Error(
+          `File not found at ${filePath}\n` +
+          `Fix: Ensure the file exists at the specified path.`
+        );
+      }
+      throw new Error(
+        `Failed to read file at ${filePath}\n` +
+        `Reason: ${(error as Error).message}\n` +
+        `Fix: Ensure you have read permissions for the file.`
       );
     }
   }
@@ -116,5 +155,48 @@ export class FileSystemUtils {
    */
   static calculateHash(content: string): string {
     return createHash('sha256').update(content).digest('hex');
+  }
+
+  /**
+   * List files in a directory
+   */
+  static async listFiles(dirPath: string): Promise<string[]> {
+    try {
+      return await readdir(dirPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new Error(
+          `Directory not found at ${dirPath}\n` +
+          `Fix: Ensure the directory exists at the specified path.`
+        );
+      }
+      throw new Error(
+        `Failed to list files in ${dirPath}\n` +
+        `Reason: ${(error as Error).message}\n` +
+        `Fix: Ensure you have read permissions for the directory.`
+      );
+    }
+  }
+
+  /**
+   * Get file statistics
+   */
+  static async getFileStats(filePath: string): Promise<{ size: number }> {
+    try {
+      const stats = await stat(filePath);
+      return { size: stats.size };
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new Error(
+          `File not found at ${filePath}\n` +
+          `Fix: Ensure the file exists at the specified path.`
+        );
+      }
+      throw new Error(
+        `Failed to get file stats for ${filePath}\n` +
+        `Reason: ${(error as Error).message}\n` +
+        `Fix: Ensure you have read permissions for the file.`
+      );
+    }
   }
 }

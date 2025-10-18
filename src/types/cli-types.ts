@@ -37,7 +37,7 @@ export interface AskCommandOptions extends BaseCommandOptions {
 export interface GenerateCommandOptions extends BaseCommandOptions {
   mode?: 'fast' | 'professional' | 'research';
   output?: string;
-  format?: 'json' | 'markdown' | 'both';
+  format?: 'json' | 'markdown' | 'html' | 'both';
 }
 
 export interface AuditCommandOptions extends BaseCommandOptions {

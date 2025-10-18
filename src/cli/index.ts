@@ -11,6 +11,7 @@ import { auditCommand } from './commands/audit.js';
 import { contextCommand } from './commands/context.js';
 import { ingestCommand } from './commands/ingest.js';
 import { evolveCommand } from './commands/evolve.js';
+import { narrativeCommand } from './commands/narrative.js';
 import {
   listPromptsCommand,
   showPromptCommand,
@@ -68,8 +69,17 @@ program
   .requiredOption('-b, --brand <name>', 'Brand name')
   .option('-m, --mode <type>', 'Mode (fast|professional|research)', 'professional')
   .option('-o, --output <path>', 'Output file path')
-  .option('-f, --format <type>', 'Output format (json|markdown|both)', 'markdown')
+  .option('-f, --format <type>', 'Output format (json|markdown|html|both)', 'markdown')
   .action(generateCommand);
+
+// Narrative command
+program
+  .command('narrative')
+  .description('Generate comprehensive 6-act narrative package')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .option('-o, --output <path>', 'Output file path (without extension)')
+  .option('-f, --format <type>', 'Output format (html|json|both)', 'html')
+  .action(narrativeCommand);
 
 // Audit command
 program

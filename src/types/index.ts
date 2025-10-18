@@ -32,3 +32,6 @@ export * from './cli-types.js';
 
 // Evolution workshop types
 export * from './evolution-types.js';
+
+// Presentation types
+export * from './presentation-types.js';
