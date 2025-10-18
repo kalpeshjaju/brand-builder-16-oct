@@ -17,6 +17,15 @@ export async function askCommand(query: string, options: AskCommandOptions): Pro
       throw new Error('Brand name is required. Use --brand flag.');
     }
 
+    // Early API key validation (fail fast)
+    if (!process.env['ANTHROPIC_API_KEY']) {
+      spinner.fail(chalk.red('API key not found'));
+      throw new Error(
+        'ANTHROPIC_API_KEY is not set in environment variables.\n' +
+        'Fix: Set ANTHROPIC_API_KEY in your .env file or environment.'
+      );
+    }
+
     logger.info('Ask command', { brand, query });
 
     // Try to retrieve relevant context from ORACLE
