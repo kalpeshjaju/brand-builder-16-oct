@@ -1,6 +1,6 @@
 // Generate command - Generate brand strategy
 
-import type { BrandStrategy, GenerateCommandOptions } from '../../types/index.js';
+import type { BrandStrategy, BrandConfiguration, GenerateCommandOptions } from '../../types/index.js';
 import { LLMService } from '../../genesis/llm-service.js';
 import { FileSystemUtils, logger, FormattingUtils, parseJSON, isBrandStrategyLike } from '../../utils/index.js';
 import { HTMLGenerator } from '../../presentation/html-generator.js';
@@ -171,39 +171,30 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
       throw new Error(`Brand workspace not found. Run: brandos init --brand "${brand}"`);
     }
 
-    const config = await FileSystemUtils.readJSON(configPath);
+    const config = await FileSystemUtils.readJSON<BrandConfiguration>(configPath);
 
-    // Generate strategy using LLM
+    // Generate strategy using LLM with prompt registry
     const llm = new LLMService();
 
-    const prompt = `Generate a comprehensive brand strategy for ${brand}.
+    spinner.text = `Generating ${mode} strategy using prompt registry...`;
 
-Brand Configuration:
-${JSON.stringify(config, null, 2)}
+    // Use the brand-strategy-gen prompt from registry
+    const response = await llm.promptFromRegistry(
+      'brand-strategy-gen',
+      {
+        brandName: brand,
+        industry: config.industry || config.category || 'general',
+        context: `Brand Configuration:\n${JSON.stringify(config, null, 2)}\n\nMode: ${mode}\n\nGenerate a comprehensive, specific strategy for ${brand}.`
+      }
+    );
 
-Mode: ${mode}
+    const strategyText = response.content;
 
-Return ONLY a JSON object with this exact structure (no markdown, no code blocks):
-
-{
-  "purpose": "string - brand's reason for existing",
-  "mission": "string - what the brand aims to accomplish",
-  "vision": "string - long-term aspiration",
-  "values": ["value1", "value2", "value3"],
-  "positioning": "string - how the brand positions itself in the market",
-  "personality": ["trait1", "trait2", "trait3"],
-  "voiceAndTone": {
-    "voice": "string - brand voice description",
-    "toneAttributes": ["attribute1", "attribute2"]
-  },
-  "keyMessages": ["message1", "message2", "message3"],
-  "differentiators": ["differentiator1", "differentiator2"]
-}
-
-Ensure the response is valid JSON only, starting with { and ending with }.`;
-
-    spinner.text = `Generating ${mode} strategy...`;
-    const strategyText = await llm.prompt(prompt);
+    logger.info('Strategy generated with prompt registry', {
+      promptId: 'brand-strategy-gen',
+      runId: response.metadata.runId,
+      model: response.metadata.model
+    });
     const { strategy, parseMethod } = extractBrandStrategy(strategyText, brand);
 
     const outputPayload = {
