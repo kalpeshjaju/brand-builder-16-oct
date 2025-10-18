@@ -30,7 +30,8 @@ vi.mock('chalk', () => ({
 
 describe('Init Command', () => {
   const testBrand = 'TestBrand';
-  const testWorkspace = path.join(process.cwd(), '.brandos', testBrand.toLowerCase());
+  const homeDir = process.env['HOME'] || process.env['USERPROFILE'] || process.cwd();
+  const testWorkspace = path.join(homeDir, '.brandos', testBrand.toLowerCase());
 
   beforeEach(() => {
     // Clean up test workspace before each test
