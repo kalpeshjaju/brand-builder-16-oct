@@ -1,0 +1,55 @@
+{
+  "id": "competitive-analysis",
+  "name": "Competitive Analysis",
+  "description": "Analyze competitors and identify positioning gaps, differentiation opportunities, and competitive advantages. Creates comprehensive competitive landscape assessment.",
+  "category": "analysis",
+  "version": "1.0.0",
+  "active": true,
+  "systemPrompt": "You are a competitive intelligence expert specializing in brand positioning and market analysis. You help brands understand their competitive landscape and identify strategic opportunities for differentiation.\n\nYour approach:\n- Systematic: Analyze competitors across consistent dimensions\n- Strategic: Focus on positioning, messaging, and brand perception\n- Opportunity-focused: Identify gaps and whitespace in the market\n- Evidence-based: Ground analysis in observable facts (websites, marketing materials, reviews)\n- Actionable: Provide specific recommendations for differentiation\n\nYou analyze:\n- Positioning statements and value propositions\n- Target audiences and market segments\n- Messaging and brand voice\n- Product/service offerings\n- Strengths and weaknesses\n- Market perception and brand reputation",
+  "userPromptTemplate": "Analyze the competitive landscape for {{brandName}} in the {{industry}} industry.\n\n**Our Brand:**\n{{brandInfo}}\n\n**Competitors to Analyze:**\n{{competitors}}\n\n**Available Context:**\n{{context}}\n\n**Instructions:**\nProvide a comprehensive competitive analysis with this structure:\n\n```json\n{\n  \"competitiveLandscape\": {\n    \"marketOverview\": \"1-2 sentence description of competitive dynamics\",\n    \"competitorCount\": \"Number and types of competitors\",\n    \"marketMaturity\": \"emerging | growth | mature | declining\"\n  },\n  \"competitors\": [\n    {\n      \"name\": \"Competitor name\",\n      \"positioning\": \"Their positioning statement or inferred position\",\n      \"targetAudience\": \"Who they target\",\n      \"keyMessages\": [\"Message 1\", \"Message 2\", \"Message 3\"],\n      \"strengths\": [\"Strength 1\", \"Strength 2\"],\n      \"weaknesses\": [\"Weakness 1\", \"Weakness 2\"],\n      \"differentiation\": \"What makes them distinct\"\n    }\n  ],\n  \"marketGaps\": [\n    {\n      \"gap\": \"Description of unserved need or whitespace\",\n      \"opportunity\": \"Why this is valuable\",\n      \"competitiveAdvantage\": \"How {{brandName}} could own this\"\n    }\n  ],\n  \"differentiationOpportunities\": [\n    \"Opportunity 1: [Specific, actionable recommendation]\",\n    \"Opportunity 2: [Specific, actionable recommendation]\",\n    \"Opportunity 3: [Specific, actionable recommendation]\"\n  ],\n  \"strategicRecommendations\": [\n    \"Recommendation 1\",\n    \"Recommendation 2\",\n    \"Recommendation 3\"\n  ]\n}\n```\n\nBase analysis on available context. If information is limited for a competitor, note it and work with what's available.",
+  "temperature": 0.1,
+  "maxTokens": 4000,
+  "tags": ["analysis", "competitive", "strategic", "research"],
+  "author": "Brand Builder Pro",
+  "changelog": [
+    "v1.0.0: Initial competitive analysis prompt"
+  ],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "The name of our brand",
+      "required": true,
+      "type": "string",
+      "example": "Revaa"
+    },
+    {
+      "name": "industry",
+      "description": "The industry or market category",
+      "required": true,
+      "type": "string",
+      "example": "sustainable period care"
+    },
+    {
+      "name": "brandInfo",
+      "description": "Information about our brand (positioning, audience, differentiators)",
+      "required": true,
+      "type": "string",
+      "example": "Positioning: sustainable period care... Target: eco-conscious women..."
+    },
+    {
+      "name": "competitors",
+      "description": "List of competitors to analyze (names or comma-separated)",
+      "required": true,
+      "type": "string",
+      "example": "Thinx, LOLA, Cora, Rael"
+    },
+    {
+      "name": "context",
+      "description": "Research data, website content, reviews, market reports about competitors",
+      "required": false,
+      "type": "string",
+      "default": "",
+      "example": "Market research findings, competitor website content..."
+    }
+  ]
+}

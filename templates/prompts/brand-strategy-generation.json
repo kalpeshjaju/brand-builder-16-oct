@@ -1,0 +1,41 @@
+{
+  "id": "brand-strategy-gen",
+  "name": "Brand Strategy Generation",
+  "description": "Comprehensive brand strategy generation from research inputs. Creates purpose, mission, vision, values, positioning, personality, and messaging framework.",
+  "category": "generation",
+  "version": "1.0.0",
+  "active": true,
+  "systemPrompt": "You are a senior brand strategist with 20+ years of experience building world-class brands. Your expertise includes brand positioning, messaging frameworks, audience research, and competitive analysis. You create comprehensive, actionable brand strategies that are grounded in research and designed for execution.\n\nYour approach:\n- Evidence-based: Ground all recommendations in research data and market insights\n- Comprehensive: Cover all aspects of brand strategy (purpose, positioning, personality, messaging)\n- Actionable: Provide specific, implementable guidance\n- Distinctive: Ensure the brand stands out from competitors\n- Authentic: Align strategy with genuine brand DNA and capabilities\n\nYou respond with structured JSON that follows exact specifications provided.",
+  "userPromptTemplate": "Generate a comprehensive brand strategy for {{brandName}} in the {{industry}} industry.\n\n**Context:**\n{{context}}\n\n**Instructions:**\nCreate a complete brand strategy including:\n\n1. **Foundation**: Purpose, Mission, Vision, Values\n2. **Positioning**: Market position, target audience, differentiation\n3. **Personality**: Brand traits and archetype\n4. **Voice & Tone**: Communication style and tone attributes\n5. **Messaging**: Key messages and differentiators\n\nReturn ONLY valid JSON in this exact structure:\n\n```json\n{\n  \"purpose\": \"Why the brand exists beyond profit (2-3 sentences)\",\n  \"mission\": \"What the brand does and for whom (2-3 sentences)\",\n  \"vision\": \"Where the brand is headed, aspirational future state (2-3 sentences)\",\n  \"values\": [\"Value 1\", \"Value 2\", \"Value 3\", \"Value 4\", \"Value 5\"],\n  \"positioning\": \"Complete positioning statement (3-4 sentences)\",\n  \"targetAudience\": \"Primary target audience description with demographics and psychographics\",\n  \"personality\": [\"Trait 1\", \"Trait 2\", \"Trait 3\", \"Trait 4\", \"Trait 5\"],\n  \"voiceAndTone\": \"Voice description with specific tone attributes (2-3 sentences)\",\n  \"keyMessages\": [\"Message 1\", \"Message 2\", \"Message 3\", \"Message 4\"],\n  \"differentiators\": [\"Diff 1\", \"Diff 2\", \"Diff 3\", \"Diff 4\"]\n}\n```\n\nEnsure all content is specific to {{brandName}}, grounded in the provided context, and avoids generic platitudes.",
+  "temperature": 0.0,
+  "maxTokens": 4000,
+  "seed": 42,
+  "tags": ["strategy", "generation", "comprehensive", "core"],
+  "author": "Brand Builder Pro",
+  "changelog": [
+    "v1.0.0: Initial brand strategy generation prompt"
+  ],
+  "variables": [
+    {
+      "name": "brandName",
+      "description": "The name of the brand to generate strategy for",
+      "required": true,
+      "type": "string",
+      "example": "Revaa"
+    },
+    {
+      "name": "industry",
+      "description": "The industry or category the brand operates in",
+      "required": true,
+      "type": "string",
+      "example": "sustainable period care"
+    },
+    {
+      "name": "context",
+      "description": "Research context, market insights, and brand information",
+      "required": true,
+      "type": "string",
+      "example": "Market research findings, competitor analysis, customer insights..."
+    }
+  ]
+}
