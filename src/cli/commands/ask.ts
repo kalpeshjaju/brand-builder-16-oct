@@ -3,6 +3,7 @@
 import type { AskCommandOptions } from '../../types/index.js';
 import { LLMService } from '../../genesis/llm-service.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
+import { OracleClient } from '../../library/oracle-client.js';
 import chalk from 'chalk';
 import ora from 'ora';
 
@@ -18,16 +19,45 @@ export async function askCommand(query: string, options: AskCommandOptions): Pro
 
     logger.info('Ask command', { brand, query });
 
-    // Load context if available
-    const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
-    const contextPath = `${workspacePath}/data/context-state.json`;
-
+    // Try to retrieve relevant context from ORACLE
     let context = '';
-    if (await FileSystemUtils.fileExists(contextPath)) {
-      const contextState = await FileSystemUtils.readJSON(contextPath);
-      context = `Brand: ${brand}\nFiles indexed: ${(contextState as any).stats.totalFiles}`;
-    } else {
-      context = `Brand: ${brand}\nNote: No workspace found. Initialize with 'brandos init --brand "${brand}"'`;
+    const oracle = new OracleClient();
+
+    spinner.text = 'Retrieving relevant context from ORACLE...';
+
+    try {
+      const isHealthy = await oracle.isHealthy();
+
+      if (isHealthy) {
+        // Query ORACLE for relevant context
+        const oracleContext = await oracle.getContext(brand, query, 4000);
+
+        if (oracleContext && oracleContext.context) {
+          context = `Brand: ${brand}\n\nRelevant information from knowledge base:\n${oracleContext.context}`;
+          logger.info('ORACLE context retrieved', {
+            sources: oracleContext.num_sources,
+            chars: oracleContext.total_chars
+          });
+        } else {
+          logger.warn('No context found in ORACLE', { brand });
+          context = `Brand: ${brand}\nNote: No relevant information found in knowledge base.`;
+        }
+      } else {
+        logger.warn('ORACLE service not running');
+        context = `Brand: ${brand}\nNote: ORACLE service not available. Start it with: brandos oracle start`;
+      }
+    } catch (oracleError) {
+      logger.warn('ORACLE query failed', { error: (oracleError as Error).message });
+      // Fallback to basic context
+      const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
+      const contextPath = `${workspacePath}/data/context-state.json`;
+
+      if (await FileSystemUtils.fileExists(contextPath)) {
+        const contextState = await FileSystemUtils.readJSON(contextPath);
+        context = `Brand: ${brand}\nFiles indexed: ${(contextState as any).stats.totalFiles}\nNote: Could not retrieve specific content.`;
+      } else {
+        context = `Brand: ${brand}\nNote: No workspace found. Initialize with 'brandos init --brand "${brand}"'`;
+      }
     }
 
     // Use LLM to answer

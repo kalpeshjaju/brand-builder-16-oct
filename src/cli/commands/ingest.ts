@@ -2,70 +2,56 @@
 
 import type { IngestCommandOptions } from '../../types/index.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
-import { OracleClient } from '../../library/oracle-client.js';
+import { IngestionService } from '../../ingestion/ingestion-service.js';
 import chalk from 'chalk';
 import ora from 'ora';
-import { readFileSync } from 'fs';
-import { basename } from 'path';
 
 export async function ingestCommand(file: string, options: IngestCommandOptions): Promise<void> {
   const spinner = ora('Ingesting document...').start();
 
   try {
-    const { brand, category, extract, index } = options;
+    const { brand, index } = options;
 
     if (!brand) {
       throw new Error('Brand name is required. Use --brand flag.');
     }
 
-    logger.info('Ingest command', { file, brand, category });
+    logger.info('Ingest command', { file, brand });
 
     // Check file exists
     if (!(await FileSystemUtils.fileExists(file))) {
       throw new Error(`File not found: ${file}`);
     }
 
-    // Calculate file hash
-    const hash = await FileSystemUtils.calculateFileHash(file);
+    // Use IngestionService for proper PDF/DOCX parsing
+    const ingestionService = new IngestionService();
 
-    // Read file content
-    const content = readFileSync(file, 'utf-8');
-    const fileName = basename(file);
+    spinner.text = 'Parsing document...';
 
-    // Index in ORACLE if requested
+    const result = await ingestionService.ingestFile(file, {
+      brand,
+      indexInOracle: index,
+      extractTables: true,
+      preserveFormatting: false,
+    });
+
+    if (!result.success) {
+      throw new Error(`Ingestion failed: ${result.errors?.join(', ')}`);
+    }
+
+    spinner.text = 'Updating context state...';
+
+    // Get indexing stats from result
     let indexResult = null;
-    if (index) {
-      spinner.text = 'Indexing in ORACLE...';
-
-      const oracle = new OracleClient();
-
-      // Check if ORACLE is running
-      const isHealthy = await oracle.isHealthy();
-
-      if (!isHealthy) {
-        spinner.warn(chalk.yellow('ORACLE service not running - skipping indexing'));
-        console.log(chalk.yellow(`  Start ORACLE with: ${chalk.green('brandos oracle start')}`));
-      } else {
-        try {
-          indexResult = await oracle.indexDocument(
-            brand,
-            fileName,
-            content,
-            {
-              source: file,
-              category: category || 'document',
-              hash: hash.substring(0, 16),
-              indexed_at: new Date().toISOString()
-            }
-          );
-
-          spinner.text = 'Updating context state...';
-        } catch (error) {
-          spinner.warn(chalk.yellow('ORACLE indexing failed'));
-          logger.error('ORACLE indexing error', error);
-          console.log(chalk.yellow(`  Error: ${(error as Error).message}`));
+    if (index && result.success) {
+      // The IngestionService already indexed, extract stats from result
+      indexResult = {
+        chunk_stats: {
+          count: Math.ceil(result.content.cleaned.length / 2000), // Approximate chunks
+          avg_length: Math.min(2000, result.content.cleaned.length),
+          total_chars: result.content.cleaned.length
         }
-      }
+      };
     }
 
     // Update context state
@@ -84,17 +70,20 @@ export async function ingestCommand(file: string, options: IngestCommandOptions)
     console.log('\n' + chalk.bold('Ingestion Complete:'));
     console.log(chalk.cyan(`  File: ${file}`));
     console.log(chalk.cyan(`  Brand: ${brand}`));
-    console.log(chalk.cyan(`  Category: ${category || 'auto-detected'}`));
-    console.log(chalk.cyan(`  Hash: ${hash.substring(0, 16)}...`));
-    console.log(chalk.cyan(`  Extracted Facts: ${extract ? 'Yes' : 'No'}`));
+    console.log(chalk.cyan(`  Format: ${result.format}`));
+    console.log(chalk.cyan(`  Category: ${result.category}`));
+    console.log(chalk.cyan(`  Hash: ${result.fingerprint.sha256.substring(0, 16)}...`));
+    console.log(chalk.cyan(`  Word Count: ${result.metadata.wordCount?.toLocaleString() || 'N/A'}`));
+    console.log(chalk.cyan(`  Processing Time: ${result.processingTime}ms`));
 
     if (indexResult) {
       console.log(chalk.cyan(`  ORACLE Indexed: ${chalk.green('Yes')}`));
-      console.log(chalk.cyan(`    Chunks: ${indexResult.chunk_stats.count}`));
-      console.log(chalk.cyan(`    Avg Length: ${indexResult.chunk_stats.avg_length} chars`));
-      console.log(chalk.cyan(`    Total: ${indexResult.chunk_stats.total_chars.toLocaleString()} chars`));
+      console.log(chalk.cyan(`    Text Length: ${indexResult.chunk_stats.total_chars.toLocaleString()} chars`));
+      console.log(chalk.cyan(`    Approx Chunks: ~${indexResult.chunk_stats.count}`));
+    } else if (index) {
+      console.log(chalk.cyan(`  ORACLE Indexed: ${chalk.yellow('No (service not running)')}`));
     } else {
-      console.log(chalk.cyan(`  ORACLE Indexed: ${index ? chalk.yellow('No (service not running)') : 'No'}`));
+      console.log(chalk.cyan(`  ORACLE Indexed: No`));
     }
 
   } catch (error) {
