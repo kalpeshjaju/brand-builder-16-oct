@@ -4,6 +4,8 @@ import { FileSystemUtils } from './file-system.js';
 import { parseJSON } from './json-parser.js';
 import { Logger } from './logger.js';
 import type { BrandStrategy } from '../types/index.js';
+import { extname } from 'path';
+import { readFile } from 'fs/promises';
 
 const logger = new Logger('StrategyLoader');
 
@@ -74,6 +76,74 @@ function extractStrategyFromContent(content: string): {
 }
 
 export async function loadStrategyFromFile(filePath: string): Promise<LoadedStrategy> {
+  const ext = extname(filePath).toLowerCase();
+
+  // Markdown support: parse either JSON code fence or simple headings
+  if (ext === '.md' || ext === '.markdown') {
+    const text = await readFile(filePath, 'utf-8');
+    const jsonFence = /```json\s*([\s\S]*?)```/i.exec(text);
+    if (jsonFence && jsonFence[1]) {
+      const { strategy, parseMethod } = extractStrategyFromContent(jsonFence[1]);
+      const titleMatch = /^#\s+(.+)$/m.exec(text);
+      const brandName = (titleMatch && titleMatch[1])
+        ? titleMatch[1].replace(/ Brand Strategy$/i, '').trim()
+        : ((strategy as any)?.brandName as string) || 'Unknown';
+      return {
+        brandName,
+        strategy,
+        metadata: { parseMethod: parseMethod || 'json-fence' },
+        rawContent: text,
+      };
+    }
+
+    // Minimal heuristic parser for common headings
+    const getSection = (heading: string) => {
+      const re = new RegExp(`^##\\s+${heading}\\s*$[\\s\\S]*?(?=^##\\s+|\n\n---|\n\n\*Generated|$)`, 'mi');
+      const m = re.exec(text);
+      return m ? m[0] : '';
+    };
+
+    // Extract bullets from a block
+    const bullets = (block: string) => (block.match(/^[-*+]\s+(.+)$/gmi) || []).map((l) => l.replace(/^[-*+]\s+/, '').trim());
+
+    const brandTitle = /^#\s+(.+)$/m.exec(text)?.[1] || 'Unknown';
+    const brandName = brandTitle.replace(/ Brand Strategy$/i, '').trim();
+
+    const foundation = getSection('Brand Foundation');
+    const purpose = (/^###\s+Purpose\s*$([\s\S]*?)(?=^###|$)/mi.exec(foundation)?.[1] || '').trim();
+    const mission = (/^###\s+Mission\s*$([\s\S]*?)(?=^###|$)/mi.exec(foundation)?.[1] || '').trim();
+    const vision = (/^###\s+Vision\s*$([\s\S]*?)(?=^###|$)/mi.exec(foundation)?.[1] || '').trim();
+
+    const values = bullets(getSection('Core Values'));
+    const positioning = getSection('Brand Positioning').replace(/^##\s+Brand Positioning\s*$/mi, '').trim();
+    const personality = bullets(getSection('Brand Personality'));
+    const keyMessagesBlock = getSection('Key Messages');
+    const keyMessages = (keyMessagesBlock.match(/^\d+\.\s+(.+)$/gmi) || []).map((l) => l.replace(/^\d+\.\s+/, '').trim());
+    const differentiators = bullets(getSection('Competitive Differentiation'));
+
+    const candidate: Partial<BrandStrategy> = {};
+    if (purpose) candidate.purpose = purpose;
+    if (mission) candidate.mission = mission;
+    if (vision) candidate.vision = vision;
+    if (values.length) candidate.values = values;
+    if (positioning) candidate.positioning = positioning;
+    if (personality.length) candidate.personality = personality as any;
+    if (keyMessages.length) candidate.keyMessages = keyMessages as any;
+    if (differentiators.length) candidate.differentiators = differentiators as any;
+
+    if (isBrandStrategyLike(candidate)) {
+      return {
+        brandName,
+        strategy: candidate as BrandStrategy,
+        metadata: { parseMethod: 'markdown-headings' },
+        rawContent: text,
+      };
+    }
+
+    throw new Error('Markdown file does not contain recognizable strategy sections or a JSON code block.');
+  }
+
+  // JSON and generic loader path
   const fileData = await FileSystemUtils.readJSON<StrategyFileShape | BrandStrategy>(filePath);
 
   if (isBrandStrategyLike(fileData)) {

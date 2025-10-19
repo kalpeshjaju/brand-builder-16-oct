@@ -16,20 +16,26 @@ export interface LLMResponse {
 }
 
 export class LLMService {
-  private client: Anthropic;
+  private client: Anthropic | null = null;
   private config: LLMConfig;
   private promptRegistry: PromptRegistry;
+  private offline: boolean;
 
   constructor(config?: Partial<LLMConfig>) {
-    const apiKey = process.env['ANTHROPIC_API_KEY'];
-    if (!apiKey) {
-      throw new Error(
-        'ANTHROPIC_API_KEY is not set in environment variables.\n' +
-        'Fix: Set ANTHROPIC_API_KEY in your .env file or environment.'
-      );
-    }
+    this.offline = (process.env['BRANDOS_OFFLINE'] || '').toLowerCase() === 'true' ||
+      process.env['BRANDOS_OFFLINE'] === '1';
 
-    this.client = new Anthropic({ apiKey });
+    const apiKey = process.env['ANTHROPIC_API_KEY'];
+    if (!this.offline) {
+      if (!apiKey) {
+        throw new Error(
+          'ANTHROPIC_API_KEY is not set in environment variables.\n' +
+          'Fix: Set ANTHROPIC_API_KEY in your .env file or environment.\n' +
+          'Alternatively, set BRANDOS_OFFLINE=true to run with local stubs.'
+        );
+      }
+      this.client = new Anthropic({ apiKey });
+    }
     this.config = {
       provider: 'anthropic',
       model: process.env['DEFAULT_MODEL'] || 'claude-sonnet-4-5-20250929',
@@ -41,7 +47,7 @@ export class LLMService {
 
     this.promptRegistry = new PromptRegistry();
 
-    logger.info('LLM Service initialized', { model: this.config.model });
+    logger.info('LLM Service initialized', { model: this.offline ? 'offline-local' : this.config.model });
   }
 
   /**
@@ -75,6 +81,23 @@ export class LLMService {
     systemPrompt?: string,
     options?: Partial<LLMConfig>
   ): Promise<LLMResponse> {
+    if (this.offline) {
+      const offlineText = this.buildOfflineResponse(userMessage, systemPrompt);
+      return {
+        content: offlineText,
+        metadata: {
+          model: 'offline-local',
+          modelVersion: 'offline-local',
+          promptId: undefined,
+          promptTextHash: createHash('sha256').update(userMessage + (systemPrompt || '')).digest('hex'),
+          temperature: 0,
+          seed: 42,
+          runId: randomUUID(),
+          timestamp: new Date().toISOString(),
+          provider: 'anthropic',
+        },
+      };
+    }
     const startTime = Date.now();
     const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${userMessage}` : userMessage;
     const metadata = this.generateMetadata(fullPrompt, options || {});
@@ -87,7 +110,7 @@ export class LLMService {
             { role: 'user', content: userMessage },
           ];
 
-          const apiResponse = await this.client.messages.create({
+          const apiResponse = await (this.client as Anthropic).messages.create({
             model: options?.model || this.config.model,
             max_tokens: options?.maxTokens || this.config.maxTokens,
             temperature: options?.temperature ?? this.config.temperature,
@@ -230,10 +253,32 @@ export class LLMService {
     const metadata = this.generateMetadata(fullPrompt, llmOptions, template.id);
 
     try {
+      if (this.offline) {
+        // Minimal deterministic stub for offline mode
+        const content = this.buildOfflineRegistryResponse(template.id, context);
+        await this.promptRegistry.trackUsage(promptId, options?.version, options?.confidence);
+        return {
+          content,
+          metadata: {
+            model: 'offline-local',
+            modelVersion: 'offline-local',
+            promptId: template.id,
+            promptTextHash: createHash('sha256').update(userPrompt).digest('hex'),
+            temperature: 0,
+            seed: 42,
+            runId: randomUUID(),
+            timestamp: new Date().toISOString(),
+            provider: 'anthropic',
+          },
+        };
+      }
       const messages: Anthropic.MessageParam[] = [
         { role: 'user', content: userPrompt },
       ];
 
+      if (!this.client) {
+        throw new Error('LLM client not initialized');
+      }
       const response = await this.client.messages.create({
         model: this.config.model,
         max_tokens: llmOptions.maxTokens || this.config.maxTokens,
@@ -266,6 +311,52 @@ export class LLMService {
         `Fix: Check your API key and network connection.`
       );
     }
+  }
+
+  /**
+   * Offline response builder for freeform prompts
+   */
+  private buildOfflineResponse(userMessage: string, _systemPrompt?: string): string {
+    const header = 'OFFLINE MODE: This is a deterministic local stub.\n';
+    const preview = (userMessage || '').slice(0, 240);
+    return `${header}${preview}`;
+  }
+
+  /**
+   * Offline response builder for prompt registry calls
+   * Provides structured JSON for known prompts used by the CLI.
+   */
+  private buildOfflineRegistryResponse(promptId: string, context: PromptRenderContext): string {
+    if (promptId === 'brand-strategy-gen') {
+      const brand = (context as any)?.brandName || 'Unknown Brand';
+      const industry = (context as any)?.industry || 'general';
+      const strategy = {
+        brandStrategy: {
+          brandName: brand,
+          purpose: `Make a positive impact in ${industry}.`,
+          mission: `Help ${brand} customers succeed through simplicity and speed.`,
+          vision: `${brand} becomes the most loved ${industry} brand for creators.`,
+          values: ['Simplicity', 'Trust', 'Speed'],
+          positioning: `${brand} is the fastest way to create and share.`,
+          personality: ['Helpful', 'Confident', 'Friendly'],
+          voiceAndTone: { voice: 'Clear and direct', toneAttributes: ['Warm', 'Practical'] },
+          keyMessages: [
+            `${brand} saves you time so you can focus on work that matters.`,
+            `${brand} gives you professional results with minimal effort.`,
+            `${brand} grows with your needs.`
+          ],
+          differentiators: ['Exceptional speed', 'Thoughtful defaults', 'Integrated workflows'],
+          proofPoints: ['Used by teams worldwide', 'Consistent uptime', 'Strong security practices']
+        }
+      };
+      return JSON.stringify(strategy, null, 2);
+    }
+
+    return JSON.stringify({
+      message: 'offline-stub',
+      promptId,
+      contextPreview: String(context).slice(0, 120)
+    });
   }
 
   /**

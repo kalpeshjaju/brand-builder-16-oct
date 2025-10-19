@@ -17,8 +17,25 @@ export class HTMLGenerator {
   private template: string | null = null;
 
   async loadTemplate(theme: string = 'professional'): Promise<void> {
-    const templatePath = path.join(__dirname, 'templates', `${theme}.html`);
-    this.template = await FileSystemUtils.readFile(templatePath);
+    const candidates = [
+      path.join(__dirname, 'templates', `${theme}.html`),
+      // Fallback to source templates when running from dist without copied assets
+      path.join(process.cwd(), 'src', 'presentation', 'templates', `${theme}.html`),
+    ];
+    let lastErr: Error | null = null;
+    for (const p of candidates) {
+      try {
+        this.template = await FileSystemUtils.readFile(p);
+        return;
+      } catch (err) {
+        lastErr = err as Error;
+      }
+    }
+    throw new Error(
+      `Failed to load HTML template. Tried:\n` +
+      candidates.map(c => `  • ${c}`).join('\n') +
+      (lastErr ? `\nReason: ${lastErr.message}` : '')
+    );
   }
 
   /**
