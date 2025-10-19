@@ -122,12 +122,30 @@ export class FileSystemUtils {
 
   /**
    * Get brand workspace path
-   * Uses ~/.brandos/ for stable location across different CWDs
+   * Priority:
+   * 1) BRANDOS_HOME env (explicit override for tests/CI/customization)
+   * 2) XDG_DATA_HOME/.brandos (Linux-friendly default)
+   * 3) HOME/.brandos (typical user install)
+   * 4) process.cwd()/.brandos (fallback for sandboxed environments)
    */
   static getBrandWorkspacePath(brandName: string): string {
     const sanitized = brandName.toLowerCase().replace(/\s+/g, '-');
-    const homeDir = process.env['HOME'] || process.env['USERPROFILE'] || process.cwd();
-    return join(homeDir, '.brandos', sanitized);
+    const brandosHome = process.env['BRANDOS_HOME'];
+    if (brandosHome && brandosHome.trim()) {
+      return join(brandosHome, sanitized);
+    }
+
+    const xdgDataHome = process.env['XDG_DATA_HOME'];
+    if (xdgDataHome && xdgDataHome.trim()) {
+      return join(xdgDataHome, 'brandos', sanitized);
+    }
+
+    const homeDir = process.env['HOME'] || process.env['USERPROFILE'];
+    if (homeDir && homeDir.trim()) {
+      return join(homeDir, '.brandos', sanitized);
+    }
+
+    return join(process.cwd(), '.brandos', sanitized);
   }
 
   /**
