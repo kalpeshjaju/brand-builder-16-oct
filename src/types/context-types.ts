@@ -7,7 +7,7 @@ export type ResourceType = 'industry' | 'competitor' | 'research' | 'framework';
 export type DocumentType = 'strategy' | 'guideline' | 'asset' | 'report';
 
 export type FileCategory = 'input' | 'resource' | 'document' | 'output';
-export type FileFormat = 'pdf' | 'docx' | 'md' | 'xlsx' | 'json' | 'txt' | 'unknown';
+export type FileFormat = 'pdf' | 'docx' | 'md' | 'xlsx' | 'json' | 'txt' | 'csv' | 'unknown';
 
 export interface FileFingerprint {
   sha256: string;

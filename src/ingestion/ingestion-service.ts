@@ -210,10 +210,14 @@ export class IngestionService {
       case 'md':
       case 'markdown':
         return 'md';
+      case 'json':
+        return 'json';
+      case 'csv':
+        return 'csv';
       default:
         throw new Error(
           `Unknown file format: ${ext}\n` +
-          `Supported formats: pdf, docx, txt, md`
+          `Supported formats: pdf, docx, txt, md, json, csv`
         );
     }
   }

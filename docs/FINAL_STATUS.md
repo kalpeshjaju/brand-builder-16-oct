@@ -1,8 +1,8 @@
 # Brand Builder Pro - Final Status
 
 **Last Updated**: 2025-10-19
-**Version**: 1.1.0
-**Status**: ✅ Core Pipeline Complete, Integration Phase Active
+**Version**: 1.2.0
+**Status**: ✅ Core Pipeline Complete + Enhanced Guardian Stack Active
 
 ---
 
@@ -36,6 +36,8 @@ Brand Builder Pro is a **CLI-first Brand Intelligence Operating System** that co
 - [x] ResearchDatabase (4-file architecture: core/search/indexer/main)
 - [x] Confidence scoring (format-based: PDF=8, TXT=6)
 - [x] Source tier classification (tier1-tier4)
+- [x] FactCheckerEnhanced (multi-source claim verification)
+- [x] CrossSourceVerifier (consistency checking across sources)
 
 ### **Phase 4: LLM Services** ✅
 - [x] LLMService (Anthropic Claude integration)
@@ -53,7 +55,7 @@ Brand Builder Pro is a **CLI-first Brand Intelligence Operating System** that co
 
 ---
 
-## CLI Commands (12 Commands)
+## CLI Commands (14 Commands)
 
 ### **Brand Management**
 ```bash
@@ -66,12 +68,18 @@ brandos ingest <file> --brand <name> --index
 # Now auto-stores research findings in database
 ```
 
-### **Research Database** (NEW)
+### **Research Database**
 ```bash
 brandos research list --brand <name>
 brandos research search <query> --brand <name>
 brandos research stats --brand <name>
 brandos research export --brand <name>
+```
+
+### **Guardian (Fact-Checking)** (NEW)
+```bash
+brandos guardian check <claim> --brand <name>
+brandos guardian verify <statement> --brand <name>
 ```
 
 ### **Strategy Generation**
@@ -142,6 +150,31 @@ brandos evolve workshop --brand <name>
 
 ---
 
+## Recent Enhancements (v1.2.0)
+
+### **Enhanced Guardian Stack** (1,129 lines added)
+1. ✅ **FactCheckerEnhanced** - Multi-source claim verification
+   - Confidence scoring (0-10 scale)
+   - Contradiction detection
+   - Source quality assessment (tier1-tier4)
+   - Configurable verification thresholds
+2. ✅ **CrossSourceVerifier** - Consistency checking
+   - Consensus scoring (strong/moderate/weak/conflicting)
+   - Conflict detection (major vs minor)
+   - Reliability metrics
+   - Resolution recommendations
+3. ✅ **Guardian CLI Commands** - Fact-checking interface
+   - `brandos guardian check` - Verify claims
+   - `brandos guardian verify` - Check consistency
+4. ✅ **Documentation** - Usage guides and examples
+   - Creative direction config examples
+   - Guardian usage guide
+
+### **Non-Interactive Mode** (51 lines added)
+1. ✅ **CreativeDirectionConfig** - Config-driven evolution
+2. ✅ **Automation Support** - Batch processing enabled
+3. ✅ **CLI Flag** - `--config <path>` for evolve command
+
 ## Recent Fixes (v1.1.0)
 
 ### **Critical Bug Fixes** (10 issues resolved)
@@ -164,12 +197,12 @@ brandos evolve workshop --brand <name>
 
 ## Known Gaps (Prioritized)
 
-### **Gap 1: Creative Director Automation** 🔴 HIGH
+### **Gap 1: Creative Director Automation** ✅ RESOLVED
 - **File**: `src/evolution/creative-director.ts`
 - **Issue**: Uses blocking `inquirer.prompt()` in 5 methods
 - **Impact**: Cannot automate evolution pipeline
 - **Solution**: Add non-interactive mode with config-driven inputs
-- **Status**: IN PROGRESS
+- **Status**: ✅ COMPLETE (v1.2.0)
 
 ### **Gap 2: Multi-Source Ingestion** 🟡 MEDIUM
 - **File**: `src/ingestion/ingestion-service.ts`
@@ -179,11 +212,11 @@ brandos evolve workshop --brand <name>
 - **Solution**: Add parsers for each format
 - **Status**: PLANNED
 
-### **Gap 4: Documentation** 🟢 LOW
+### **Gap 4: Documentation** ✅ RESOLVED
 - **Issue**: Missing FINAL_STATUS.md, COMPLETION_PLAN.md, docs/README.md
 - **Impact**: No visibility into project state
 - **Solution**: Create comprehensive documentation
-- **Status**: IN PROGRESS (this file)
+- **Status**: ✅ COMPLETE (v1.2.0)
 
 ---
 
@@ -216,10 +249,10 @@ brandos evolve workshop --brand <name>
 ## Repository Stats
 
 - **TypeScript Files**: 151
-- **Lines of Code**: ~15,000 (estimated)
+- **Lines of Code**: ~17,800 (estimated)
 - **Dependencies**: 17 production, 12 dev
-- **CLI Commands**: 12 top-level + 30 subcommands
-- **Genesis Modules**: 11 files (tracker, database, registry, config)
+- **CLI Commands**: 14 top-level + 34 subcommands
+- **Genesis Modules**: 16 files (tracker, database, guardian, registry, config)
 
 ---
 
@@ -228,11 +261,11 @@ brandos evolve workshop --brand <name>
 **Target**: Complete Gap 1 (automation) + Port enhanced guardian stack
 
 **Remaining Work**:
-1. Add non-interactive mode to creative-director.ts
-2. Port fact-checker-enhanced.ts from horizon-brand-builder
-3. Port cross-source-verifier.ts from horizon-brand-builder
-4. Wire guardian stack into generation pipeline
-5. Add multi-source parsers (reviews, decks, tables)
+1. ~~Add non-interactive mode to creative-director.ts~~ ✅ COMPLETE
+2. ~~Port fact-checker-enhanced.ts from horizon-brand-builder~~ ✅ COMPLETE
+3. ~~Port cross-source-verifier.ts from horizon-brand-builder~~ ✅ COMPLETE
+4. Wire guardian stack into generation pipeline (auto-verify)
+5. Add multi-source parsers (reviews, decks, tables) - IN PROGRESS
 
 **ETA**: 3-5 hours of focused development
 

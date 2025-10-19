@@ -1,0 +1,76 @@
+{
+  "brandName": "Acme Inc",
+  "contradictions": [
+    {
+      "patternId": "CONT-001",
+      "action": "explore",
+      "direction": "Own the contradiction - be the premium accessible brand. Embrace both high quality AND affordability as our core differentiator."
+    },
+    {
+      "patternId": "CONT-002",
+      "action": "note",
+      "direction": null
+    },
+    {
+      "patternId": "CONT-003",
+      "action": "skip"
+    }
+  ],
+  "whiteSpace": [
+    {
+      "gapId": "WS-001",
+      "decision": "pursue",
+      "reasoning": "No competitor is addressing mid-market companies with enterprise-grade features at SMB prices. This is our blue ocean opportunity."
+    },
+    {
+      "gapId": "WS-002",
+      "decision": "explore",
+      "reasoning": "Worth investigating the sustainability angle, but need more market validation before committing."
+    },
+    {
+      "gapId": "WS-003",
+      "decision": "note",
+      "reasoning": "Keep in mind for Phase 2, not ready now."
+    }
+  ],
+  "creativeLeaps": [
+    {
+      "idea": "Position as 'Enterprise Power, Startup Speed' - the only platform that combines Fortune 500 capabilities with the agility startups need",
+      "rationale": "Addresses the core contradiction and white space opportunity. Differentiates us from both expensive enterprise vendors and limited SMB tools."
+    },
+    {
+      "idea": "Target the 'ambitious mid-market' segment - companies with big goals but constrained budgets",
+      "rationale": "This segment is underserved and perfectly aligned with our premium-accessible positioning."
+    },
+    {
+      "idea": "Own the 'growth accelerator' narrative instead of competing on features",
+      "rationale": "Shifts conversation from price/features to outcomes and ROI, which is where we excel."
+    }
+  ],
+  "intuitions": [
+    {
+      "observation": "Customers don't actually want more features - they want their existing features to work better together",
+      "context": "Feedback from 20+ customer interviews showed integration and workflow trumps feature count",
+      "confidence": 0.9
+    },
+    {
+      "observation": "The market is ready for a brand that feels human and approachable, not corporate and stuffy",
+      "context": "Competitors all sound the same - formal, jargon-heavy, impersonal. We can stand out with authentic, clear communication.",
+      "confidence": 0.7
+    },
+    {
+      "observation": "Our best customers are not who we think they are - they're growth-stage companies, not early startups",
+      "context": "Data shows 80% of our revenue comes from 50-200 person companies, not <50 as we assumed",
+      "confidence": 0.9
+    }
+  ],
+  "primaryDirection": "Position Acme as the growth accelerator for ambitious mid-market companies - combining enterprise-grade power with startup-level speed and accessibility",
+  "keyThemes": [
+    "growth acceleration",
+    "ambitious mid-market",
+    "premium accessibility",
+    "enterprise power",
+    "startup speed",
+    "outcome-focused"
+  ]
+}
