@@ -4,6 +4,9 @@ import { getParser } from './parsers/index.js';
 import { createOracleClient, type OracleClient } from '../oracle/index.js';
 import type { ProcessedContent, IngestionResult } from '../types/ingestion-types.js';
 import type { FileFormat } from '../types/context-types.js';
+import type { BrandConfiguration } from '../types/brand-types.js';
+import type { ResearchFinding } from '../types/research-types.js';
+import { ResearchDatabase } from '../genesis/research-database/index.js';
 import { logger, FileSystemUtils } from '../utils/index.js';
 
 export interface IngestionOptions {
@@ -12,21 +15,25 @@ export interface IngestionOptions {
   indexInOracle?: boolean;
   extractTables?: boolean;
   preserveFormatting?: boolean;
+  storeFindings?: boolean; // Store research findings in database
 }
 
 export interface IngestionServiceConfig {
   oracleClient?: OracleClient;
+  brandConfig?: BrandConfiguration;
 }
 
 /**
  * Ingestion Service
- * Orchestrates document parsing and indexing in ORACLE
+ * Orchestrates document parsing, indexing in ORACLE, and storing research findings
  */
 export class IngestionService {
   private oracle: OracleClient;
+  private researchDB: ResearchDatabase | null;
 
   constructor(config: IngestionServiceConfig = {}) {
     this.oracle = config.oracleClient || createOracleClient();
+    this.researchDB = config.brandConfig ? new ResearchDatabase(config.brandConfig) : null;
   }
 
   /**
@@ -92,6 +99,11 @@ export class IngestionService {
       // Index in ORACLE if requested
       if (options.indexInOracle) {
         await this.indexInOracle(result, options.brand);
+      }
+
+      // Store research findings if requested
+      if (options.storeFindings && this.researchDB) {
+        await this.storeFindings(result, filePath);
       }
 
       logger.info('Ingestion complete', {
@@ -236,6 +248,100 @@ export class IngestionService {
    */
   private countWords(text: string): number {
     return text.split(/\s+/).filter(word => word.length > 0).length;
+  }
+
+  /**
+   * Store research findings from ingested document
+   */
+  private async storeFindings(result: IngestionResult, filePath: string): Promise<void> {
+    if (!this.researchDB) {
+      logger.warn('ResearchDatabase not initialized, skipping findings storage');
+      return;
+    }
+
+    try {
+      // Initialize database if needed
+      await this.researchDB.initialize();
+
+      // Extract findings from processed content
+      const findings = this.extractFindings(result, filePath);
+
+      if (findings.length > 0) {
+        await this.researchDB.addFindings(findings);
+        logger.info('Stored research findings', {
+          fileId: result.fileId,
+          findingsCount: findings.length,
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to store findings', {
+        fileId: result.fileId,
+        error: (error as Error).message,
+      });
+      // Don't throw - findings storage failure shouldn't fail ingestion
+    }
+  }
+
+  /**
+   * Extract research findings from processed content
+   */
+  private extractFindings(result: IngestionResult, filePath: string): ResearchFinding[] {
+    const findings: ResearchFinding[] = [];
+    const content = result.content;
+
+    // Extract from structured sections if available
+    if (content.structured.sections) {
+      content.structured.sections.forEach((section: any) => {
+        if (section.heading && section.content) {
+          const title = result.metadata.title || this.extractTitle(filePath, content) || 'Unknown';
+          findings.push({
+            topic: section.heading,
+            content: section.content,
+            sources: [{
+              title,
+              url: filePath,
+              tier: 'tier1', // Document files are tier1 sources
+            }],
+            confidence: this.calculateConfidence(result.format),
+            timestamp: new Date().toISOString(),
+          });
+        }
+      });
+    }
+
+    // If no sections, create one finding from cleaned content
+    if (findings.length === 0 && content.cleaned) {
+      const title = result.metadata.title || this.extractTitle(filePath, content) || 'Unknown';
+      findings.push({
+        topic: result.metadata.title || 'Document Content',
+        content: content.cleaned.slice(0, 5000), // Limit to 5k chars
+        sources: [{
+          title,
+          url: filePath,
+          tier: 'tier1', // Document files are tier1 sources
+        }],
+        confidence: this.calculateConfidence(result.format),
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    return findings;
+  }
+
+  /**
+   * Calculate confidence score based on source format
+   */
+  private calculateConfidence(format: FileFormat): number {
+    switch (format) {
+      case 'pdf':
+      case 'docx':
+        return 8; // High confidence for official documents
+      case 'md':
+      case 'txt':
+        return 6; // Medium confidence for text files
+      default:
+        return 5; // Default medium confidence
+    }
   }
 
   /**

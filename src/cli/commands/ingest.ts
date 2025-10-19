@@ -1,6 +1,7 @@
 // Ingest command - Ingest and process documents
 
 import type { IngestCommandOptions } from '../../types/index.js';
+import type { BrandConfiguration } from '../../types/brand-types.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
 import { IngestionService } from '../../ingestion/ingestion-service.js';
 import chalk from 'chalk';
@@ -23,8 +24,19 @@ export async function ingestCommand(file: string, options: IngestCommandOptions)
       throw new Error(`File not found: ${file}`);
     }
 
+    // Load brand config
+    const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
+    const configPath = `${workspacePath}/brand-config.json`;
+    let brandConfig: BrandConfiguration | undefined;
+
+    try {
+      brandConfig = await FileSystemUtils.readJSON<BrandConfiguration>(configPath);
+    } catch {
+      logger.warn('Brand config not found, research findings will not be stored');
+    }
+
     // Use IngestionService for proper PDF/DOCX parsing
-    const ingestionService = new IngestionService();
+    const ingestionService = new IngestionService({ brandConfig });
 
     spinner.text = 'Parsing document...';
 
@@ -33,6 +45,7 @@ export async function ingestCommand(file: string, options: IngestCommandOptions)
       indexInOracle: index,
       extractTables: true,
       preserveFormatting: false,
+      storeFindings: true, // Always store findings if brand config available
     });
 
     if (!result.success) {
@@ -55,7 +68,6 @@ export async function ingestCommand(file: string, options: IngestCommandOptions)
     }
 
     // Update context state
-    const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
     const contextPath = `${workspacePath}/data/context-state.json`;
 
     if (await FileSystemUtils.fileExists(contextPath)) {

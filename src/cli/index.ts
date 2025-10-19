@@ -32,6 +32,12 @@ import {
   searchOracleCommand,
   statsOracleCommand,
 } from './commands/oracle.js';
+import {
+  listResearchCommand,
+  searchResearchCommand,
+  statsResearchCommand,
+  exportResearchCommand,
+} from './commands/research.js';
 
 // Load environment variables
 config();
@@ -237,6 +243,39 @@ oracleCmd
   .description('Show collection statistics')
   .requiredOption('-b, --brand <name>', 'Brand name')
   .action(statsOracleCommand);
+
+// Research command group
+const researchCmd = program
+  .command('research')
+  .description('Manage research database');
+
+// research list
+researchCmd
+  .command('list')
+  .description('List all research findings')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .action(listResearchCommand);
+
+// research search
+researchCmd
+  .command('search <query>')
+  .description('Search research findings by keyword')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .action(searchResearchCommand);
+
+// research stats
+researchCmd
+  .command('stats')
+  .description('Show database statistics')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .action(statsResearchCommand);
+
+// research export
+researchCmd
+  .command('export')
+  .description('Export research database to JSON')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .action(exportResearchCommand);
 
 // Parse and execute
 program.parse();

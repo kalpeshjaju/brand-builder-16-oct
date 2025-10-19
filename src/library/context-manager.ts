@@ -1,7 +1,9 @@
 // Context Manager - Track system knowledge and state
 
 import type { ContextState, TrackedFile, KnowledgeEntry } from '../types/index.js';
+import type { BrandConfiguration } from '../types/brand-types.js';
 import { FileSystemUtils, Logger } from '../utils/index.js';
+import { ResearchDatabase } from '../genesis/research-database/index.js';
 
 const logger = new Logger('ContextManager');
 
@@ -9,11 +11,13 @@ export class ContextManager {
   private brandName: string;
   private workspacePath: string;
   private contextPath: string;
+  private researchDB: ResearchDatabase | null;
 
-  constructor(brandName: string) {
+  constructor(brandName: string, brandConfig?: BrandConfiguration) {
     this.brandName = brandName;
     this.workspacePath = FileSystemUtils.getBrandWorkspacePath(brandName);
     this.contextPath = `${this.workspacePath}/data/context-state.json`;
+    this.researchDB = brandConfig ? new ResearchDatabase(brandConfig) : null;
   }
 
   /**
@@ -124,6 +128,57 @@ export class ContextManager {
       .filter((entry) => entry.content.toLowerCase().includes(queryLower))
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, limit);
+  }
+
+  /**
+   * Get research findings for context building
+   */
+  async getResearchFindings(options?: {
+    query?: string;
+    minConfidence?: number;
+    maxResults?: number;
+  }): Promise<string> {
+    if (!this.researchDB) {
+      return '';
+    }
+
+    try {
+      await this.researchDB.initialize();
+
+      let findings;
+      if (options?.query) {
+        findings = await this.researchDB.searchFindings({
+          query: options.query,
+          minConfidence: options.minConfidence,
+          maxResults: options.maxResults,
+        });
+      } else {
+        findings = await this.researchDB.getHighConfidenceFindings();
+        if (options?.maxResults) {
+          findings = findings.slice(0, options.maxResults);
+        }
+      }
+
+      // Format findings as context string
+      if (findings.length === 0) {
+        return '';
+      }
+
+      let context = '## Research Findings\n\n';
+      findings.forEach((finding, index) => {
+        context += `### ${index + 1}. ${finding.topic}\n\n`;
+        context += `${finding.content}\n\n`;
+        context += `**Sources**: ${finding.sources.map(s => s.title).join(', ')}\n`;
+        context += `**Confidence**: ${finding.confidence}/10\n\n`;
+      });
+
+      return context;
+    } catch (error) {
+      logger.error('Failed to get research findings', {
+        error: (error as Error).message,
+      });
+      return '';
+    }
   }
 
   /**
