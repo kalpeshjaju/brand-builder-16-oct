@@ -38,6 +38,10 @@ import {
   statsResearchCommand,
   exportResearchCommand,
 } from './commands/research.js';
+import {
+  checkClaimCommand,
+  verifyStatementCommand,
+} from './commands/guardian.js';
 
 // Load environment variables
 config();
@@ -276,6 +280,25 @@ researchCmd
   .description('Export research database to JSON')
   .requiredOption('-b, --brand <name>', 'Brand name')
   .action(exportResearchCommand);
+
+// Guardian command group
+const guardianCmd = program
+  .command('guardian')
+  .description('Fact-checking and source verification');
+
+// guardian check
+guardianCmd
+  .command('check <claim>')
+  .description('Verify a claim against research database')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .action(checkClaimCommand);
+
+// guardian verify
+guardianCmd
+  .command('verify <statement>')
+  .description('Check statement consistency across sources')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .action(verifyStatementCommand);
 
 // Parse and execute
 program.parse();
