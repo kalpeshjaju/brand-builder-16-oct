@@ -4,6 +4,9 @@
 
 import { Command } from 'commander';
 import { config } from 'dotenv';
+import { validateEnvironment } from '../config/env-validator.js';
+import { logger } from '../utils/logger.js';
+import { registerGracefulShutdownHandlers } from './utils/graceful-shutdown.js';
 import { initCommand } from './commands/init.js';
 import { askCommand } from './commands/ask.js';
 import { generateCommand } from './commands/generate.js';
@@ -43,9 +46,13 @@ import {
   verifyStatementCommand,
 } from './commands/guardian.js';
 import { metricsCommand } from './commands/metrics.js';
+import { healthCommand } from './commands/health.js';
 
 // Load environment variables
 config();
+const envConfig = validateEnvironment();
+logger.setLevel(envConfig.LOG_LEVEL);
+registerGracefulShutdownHandlers();
 
 const program = new Command();
 
@@ -310,6 +317,12 @@ program
   .option('-e, --export <path>', 'Export report to file')
   .option('-v, --verbose', 'Show detailed charts')
   .action(metricsCommand);
+
+// Health check command
+program
+  .command('health')
+  .description('Validate environment, API connectivity, and integrations')
+  .action(healthCommand);
 
 // Parse and execute
 program.parse();

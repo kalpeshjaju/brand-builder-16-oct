@@ -4,6 +4,8 @@ import type { AskCommandOptions } from '../../types/index.js';
 import { LLMService } from '../../genesis/llm-service.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
 import { OracleClient } from '../../library/oracle-client.js';
+import { sanitizeAskFormat, sanitizeBrandName, sanitizeQuery } from '../../validation/input-schemas.js';
+import { handleCommandError, runWithRetry } from '../utils/error-handler.js';
 import chalk from 'chalk';
 import ora from 'ora';
 
@@ -11,13 +13,10 @@ export async function askCommand(query: string, options: AskCommandOptions): Pro
   const spinner = ora('Processing your question...').start();
 
   try {
-    const { brand, format } = options;
+    const brand = sanitizeBrandName(options.brand);
+    const format = sanitizeAskFormat(options.format ?? 'text');
+    const safeQuery = sanitizeQuery(query);
 
-    if (!brand) {
-      throw new Error('Brand name is required. Use --brand flag.');
-    }
-
-    // Early API key validation (fail fast)
     if (!process.env['ANTHROPIC_API_KEY']) {
       spinner.fail(chalk.red('API key not found'));
       throw new Error(
@@ -26,7 +25,7 @@ export async function askCommand(query: string, options: AskCommandOptions): Pro
       );
     }
 
-    logger.info('Ask command', { brand, query });
+    logger.info('Ask command', { brand, query: safeQuery });
 
     // Try to retrieve relevant context from ORACLE
     let context = '';
@@ -39,7 +38,7 @@ export async function askCommand(query: string, options: AskCommandOptions): Pro
 
       if (isHealthy) {
         // Query ORACLE for relevant context
-        const oracleContext = await oracle.getContext(brand, query, 4000);
+        const oracleContext = await oracle.getContext(brand, safeQuery, 4000);
 
         if (oracleContext && oracleContext.context) {
           context = `Brand: ${brand}\n\nRelevant information from knowledge base:\n${oracleContext.context}`;
@@ -76,32 +75,29 @@ export async function askCommand(query: string, options: AskCommandOptions): Pro
 Answer questions concisely and accurately based on available context.
 If you don't have specific information, say so and provide general guidance.`;
 
-    const fullQuery = `${context}\n\nQuestion: ${query}`;
+    const fullQuery = `${context}\n\nQuestion: ${safeQuery}`;
 
     spinner.text = 'Generating answer...';
-    const answer = await llm.prompt(fullQuery, systemPrompt);
+    const answer = await runWithRetry('llm:prompt', () => llm.prompt(fullQuery, systemPrompt));
 
     spinner.succeed(chalk.green('Answer generated'));
 
     if (format === 'json') {
       console.log(JSON.stringify({
-        query,
+        query: safeQuery,
         answer,
         brand,
         timestamp: new Date().toISOString(),
       }, null, 2));
     } else {
       console.log('\n' + chalk.bold('Question:'));
-      console.log(chalk.cyan(query));
+      console.log(chalk.cyan(safeQuery));
       console.log('\n' + chalk.bold('Answer:'));
       console.log(answer);
       console.log('');
     }
 
   } catch (error) {
-    spinner.fail(chalk.red('Failed to process question'));
-    logger.error('Ask command failed', error);
-    console.error(chalk.red(`Error: ${(error as Error).message}`));
-    process.exit(1);
+    handleCommandError('ask', error, spinner);
   }
 }

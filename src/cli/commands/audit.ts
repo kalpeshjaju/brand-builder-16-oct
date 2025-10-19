@@ -3,7 +3,9 @@
 import type { AuditCommandOptions } from '../../types/index.js';
 import { BrandAuditor } from '../../guardian/brand-auditor.js';
 import { ValidationEngine } from '../../validation/validation-engine.js';
-import { FileSystemUtils, logger, loadStrategyFromFile } from '../../utils/index.js';
+import { FileSystemUtils, FormattingUtils, logger, loadStrategyFromFile } from '../../utils/index.js';
+import { sanitizeAuditMode, sanitizeFilePath } from '../../validation/input-schemas.js';
+import { handleCommandError } from '../utils/error-handler.js';
 import chalk from 'chalk';
 import ora from 'ora';
 import path from 'path';
@@ -12,16 +14,18 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
   const spinner = ora('Auditing brand strategy...').start();
 
   try {
-    const { input, output, mode } = options;
+    const inputPath = sanitizeFilePath(options.input);
+    const outputPath = options.output ? sanitizeFilePath(options.output) : undefined;
+    const mode = options.mode ? sanitizeAuditMode(options.mode) : undefined;
 
-    logger.info('Audit command', { input, mode });
+    logger.info('Audit command', { input: inputPath, mode });
 
     // Read strategy file
-    if (!(await FileSystemUtils.fileExists(input))) {
-      throw new Error(`Strategy file not found: ${input}`);
+    if (!(await FileSystemUtils.fileExists(inputPath))) {
+      throw new Error(`Strategy file not found: ${inputPath}`);
     }
 
-    const loaded = await loadStrategyFromFile(input);
+    const loaded = await loadStrategyFromFile(inputPath);
 
     logger.debug('Loaded strategy file', {
       brandName: loaded.brandName,
@@ -35,11 +39,11 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
 
     // Validate and normalize mode
     const detectedMode = loaded.metadata.mode;
-    const validModes = ['quick', 'standard', 'comprehensive'] as const;
-    const auditMode = mode ||
-      (detectedMode && validModes.includes(detectedMode as typeof validModes[number])
-        ? (detectedMode as typeof validModes[number])
-        : 'standard');
+    const validModes = new Set(['quick', 'standard', 'comprehensive']);
+    const inferredMode = typeof detectedMode === 'string' && validModes.has(detectedMode)
+      ? (detectedMode as 'quick' | 'standard' | 'comprehensive')
+      : undefined;
+    const auditMode = mode ?? inferredMode ?? 'standard';
 
     const auditResult = await auditor.audit(
       loaded.strategy,
@@ -79,12 +83,12 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
     );
 
     // Save both audit and validation reports
-    const outputPath = output || `outputs/audits/${loaded.brandName}-audit.json`;
-    const validationPath = output
-      ? output.replace('.json', '-validation.json')
-      : `outputs/audits/${loaded.brandName}-validation.json`;
+    const baseOutputPath = (outputPath ?? `outputs/audits/${FormattingUtils.sanitizeFilename(loaded.brandName)}-audit`)
+      .replace(/\.json$/i, '');
+    const auditOutputPath = `${baseOutputPath}.json`;
+    const validationPath = `${baseOutputPath}-validation.json`;
 
-    await FileSystemUtils.writeJSON(outputPath, auditResult);
+    await FileSystemUtils.writeJSON(auditOutputPath, auditResult);
     await FileSystemUtils.writeJSON(validationPath, validationReport);
 
     spinner.succeed(chalk.green('Audit completed with enhanced validation!'));
@@ -106,7 +110,7 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
     console.log(chalk.cyan(`  Quality Fixes Tracked: ${validationReport.fixes.length}`));
 
     console.log('\n' + chalk.bold('📁 Reports Generated:'));
-    console.log(chalk.cyan(`  Basic Audit: ${outputPath}`));
+    console.log(chalk.cyan(`  Basic Audit: ${auditOutputPath}`));
     console.log(chalk.cyan(`  Enhanced Validation: ${validationPath}`));
 
     // Show immediate actions
@@ -129,9 +133,6 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
     }
 
   } catch (error) {
-    spinner.fail(chalk.red('Audit failed'));
-    logger.error('Audit command failed', error);
-    console.error(chalk.red(`Error: ${(error as Error).message}`));
-    process.exit(1);
+    handleCommandError('audit', error, spinner);
   }
 }

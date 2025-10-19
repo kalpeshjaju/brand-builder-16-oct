@@ -1,5 +1,7 @@
 // Logging utility
 
+import { metricsRegistry } from './metrics.js';
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export class Logger {
@@ -48,6 +50,13 @@ export class Logger {
       if (error instanceof Error && error.stack) {
         console.error(error.stack);
       }
+    }
+  }
+
+  metric(metricKey: string, value: number, metadata?: Record<string, unknown>): void {
+    metricsRegistry.observe(metricKey, value);
+    if (this.shouldLog('debug')) {
+      console.log(this.formatMessage('debug', `metric:${metricKey}`, { value, ...metadata }));
     }
   }
 

@@ -4,6 +4,7 @@
  */
 
 import type { LLMService } from '../services/llm-service.js';
+import { Logger } from '../utils/logger.js';
 
 /**
  * Agent input structure
@@ -50,10 +51,12 @@ export abstract class BaseAgent {
   protected config: AgentConfig;
   protected llmService?: LLMService;
   private startTime: number = 0;
+  protected logger: Logger;
 
   constructor(config: AgentConfig, llmService?: LLMService) {
     this.config = config;
     this.llmService = llmService;
+    this.logger = new Logger(config.name);
   }
 
   /**
@@ -229,18 +232,16 @@ export abstract class BaseAgent {
    * Log agent activity
    */
   protected log(message: string, level: 'info' | 'warn' | 'error' = 'info'): void {
-    const timestamp = new Date().toISOString();
-    const prefix = `[${timestamp}] [${this.name}]`;
-
+    // Use Logger class for structured logging instead of console.*
     switch (level) {
       case 'error':
-        console.error(`${prefix} ERROR:`, message);
+        this.logger.error(message);
         break;
       case 'warn':
-        console.warn(`${prefix} WARN:`, message);
+        this.logger.warn(message);
         break;
       default:
-        console.log(`${prefix} INFO:`, message);
+        this.logger.info(message);
     }
   }
 }

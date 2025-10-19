@@ -1,11 +1,10 @@
 // LLM Service - Anthropic Claude integration
 
-import Anthropic from '@anthropic-ai/sdk';
 import { createHash, randomUUID } from 'crypto';
-import pRetry from 'p-retry';
 import type { LLMConfig, LLMMetadata } from '../types/index.js';
 import type { PromptRenderContext } from '../types/prompt-types.js';
 import { Logger } from '../utils/index.js';
+import { ClaudeLLMService } from '../services/llm-service.js';
 import { PromptRegistry } from './prompt-registry.js';
 
 const logger = new Logger('LLMService');
@@ -16,7 +15,7 @@ export interface LLMResponse {
 }
 
 export class LLMService {
-  private client: Anthropic | null = null;
+  private llmClient: ClaudeLLMService | null = null;
   private config: LLMConfig;
   private promptRegistry: PromptRegistry;
   private offline: boolean;
@@ -24,6 +23,19 @@ export class LLMService {
   constructor(config?: Partial<LLMConfig>) {
     this.offline = (process.env['BRANDOS_OFFLINE'] || '').toLowerCase() === 'true' ||
       process.env['BRANDOS_OFFLINE'] === '1';
+
+    const model = config?.model || process.env['DEFAULT_MODEL'] || 'claude-sonnet-4-5-20250929';
+    const temperature = config?.temperature ?? parseFloat(process.env['LLM_TEMPERATURE'] || '0.0');
+    const maxTokens = config?.maxTokens ?? parseInt(process.env['LLM_MAX_TOKENS'] || '8000');
+
+    this.config = {
+      provider: 'anthropic',
+      model,
+      temperature,
+      maxTokens,
+      seed: config?.seed,
+      ...config,
+    };
 
     const apiKey = process.env['ANTHROPIC_API_KEY'];
     if (!this.offline) {
@@ -34,16 +46,13 @@ export class LLMService {
           'Alternatively, set BRANDOS_OFFLINE=true to run with local stubs.'
         );
       }
-      this.client = new Anthropic({ apiKey });
+      this.llmClient = new ClaudeLLMService({
+        apiKey,
+        model,
+        temperature,
+        maxTokens,
+      });
     }
-    this.config = {
-      provider: 'anthropic',
-      model: process.env['DEFAULT_MODEL'] || 'claude-sonnet-4-5-20250929',
-      temperature: config?.temperature ?? parseFloat(process.env['LLM_TEMPERATURE'] || '0.0'),
-      maxTokens: config?.maxTokens ?? parseInt(process.env['LLM_MAX_TOKENS'] || '8000'),
-      seed: config?.seed,
-      ...config,
-    };
 
     this.promptRegistry = new PromptRegistry();
 
@@ -102,54 +111,29 @@ export class LLMService {
     const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${userMessage}` : userMessage;
     const metadata = this.generateMetadata(fullPrompt, options || {});
 
+    if (!this.llmClient) {
+      throw new Error('LLM client not initialized');
+    }
+
     try {
-      // Retry with exponential backoff
-      const response = await pRetry(
-        async () => {
-          const messages: Anthropic.MessageParam[] = [
-            { role: 'user', content: userMessage },
-          ];
-
-          const apiResponse = await (this.client as Anthropic).messages.create({
-            model: options?.model || this.config.model,
-            max_tokens: options?.maxTokens || this.config.maxTokens,
-            temperature: options?.temperature ?? this.config.temperature,
-            system: systemPrompt,
-            messages,
-          });
-
-          const content = apiResponse.content[0];
-          if (content?.type !== 'text') {
-            throw new Error('Unexpected response format from Claude API');
-          }
-
-          return content.text;
-        },
-        {
-          retries: 3,
-          minTimeout: 1000,
-          maxTimeout: 5000,
-          onFailedAttempt: (error) => {
-            logger.warn(`LLM request attempt ${error.attemptNumber} failed`, {
-              runId: metadata.runId,
-              retriesLeft: error.retriesLeft,
-              error: String(error),
-            });
-          },
-        }
-      );
+      const response = await this.llmClient.prompt(userMessage, {
+        model: options?.model || this.config.model,
+        maxTokens: options?.maxTokens || this.config.maxTokens,
+        temperature: options?.temperature ?? this.config.temperature,
+        systemPrompt,
+      });
 
       const duration = Date.now() - startTime;
       logger.debug('LLM response received', {
         duration: `${duration}ms`,
-        runId: metadata.runId
+        runId: metadata.runId,
       });
 
-      return { content: response, metadata };
+      return { content: response.content, metadata };
     } catch (error) {
-      logger.error('LLM request failed after retries', { runId: metadata.runId, error });
+      logger.error('LLM request failed', { runId: metadata.runId, error });
       throw new Error(
-        `Failed to get LLM response after 3 retries\n` +
+        `Failed to get LLM response\n` +
         `Reason: ${(error as Error).message}\n` +
         `Fix: Check your API key, network connection, and API quota.`
       );
@@ -272,25 +256,18 @@ export class LLMService {
           },
         };
       }
-      const messages: Anthropic.MessageParam[] = [
-        { role: 'user', content: userPrompt },
-      ];
-
-      if (!this.client) {
+      if (!this.llmClient) {
         throw new Error('LLM client not initialized');
       }
-      const response = await this.client.messages.create({
+
+      const response = await this.llmClient.prompt(userPrompt, {
+        systemPrompt: template.systemPrompt,
         model: this.config.model,
-        max_tokens: llmOptions.maxTokens || this.config.maxTokens,
+        maxTokens: llmOptions.maxTokens || this.config.maxTokens,
         temperature: llmOptions.temperature ?? this.config.temperature,
-        system: template.systemPrompt,
-        messages,
       });
 
-      const content = response.content[0];
-      if (content?.type !== 'text') {
-        throw new Error('Unexpected response format from Claude API');
-      }
+      const content = response.content;
 
       // Track usage in registry
       await this.promptRegistry.trackUsage(promptId, options?.version, options?.confidence);
@@ -301,7 +278,7 @@ export class LLMService {
         runId: metadata.runId
       });
 
-      return { content: content.text, metadata };
+      return { content, metadata };
 
     } catch (error) {
       logger.error('Prompt from registry failed', { promptId, runId: metadata.runId, error });

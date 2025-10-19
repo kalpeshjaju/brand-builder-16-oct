@@ -2,21 +2,20 @@
 
 import type { InitCommandOptions } from '../../types/index.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
+import { sanitizeBrandName, sanitizeOptionalText } from '../../validation/input-schemas.js';
+import { handleCommandError } from '../utils/error-handler.js';
 import chalk from 'chalk';
 import ora from 'ora';
 
 export async function initCommand(options: InitCommandOptions): Promise<void> {
-  const { brand, industry, category } = options;
-
-  // Validate brand name before starting spinner
-  if (!brand || brand.trim() === '') {
-    throw new Error('Brand name is required');
-  }
+  const brand = sanitizeBrandName(options.brand);
+  const industry = sanitizeOptionalText(options.industry);
+  const category = sanitizeOptionalText(options.category);
 
   const spinner = ora('Initializing brand workspace...').start();
 
   try {
-    logger.info('Initializing workspace', { brand });
+    logger.info('Initializing workspace', { brand, industry, category });
 
     // Create workspace directories
     const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
@@ -37,8 +36,8 @@ export async function initCommand(options: InitCommandOptions): Promise<void> {
     // Create brand configuration
     const config = {
       brandName: brand,
-      industry: industry || 'Not specified',
-      category: category || 'Not specified',
+      industry: industry ?? 'Not specified',
+      category: category ?? 'Not specified',
       projectObjectives: {
         primary: 'Transform brand through AI-powered intelligence',
         goals: [
@@ -86,9 +85,6 @@ export async function initCommand(options: InitCommandOptions): Promise<void> {
     console.log(`  4. Run: ${chalk.green(`brandos context status --brand "${brand}"`)}`);
 
   } catch (error) {
-    spinner.fail(chalk.red('Failed to initialize workspace'));
-    logger.error('Init command failed', error);
-    console.error(chalk.red(`Error: ${(error as Error).message}`));
-    process.exit(1);
+    handleCommandError('init', error, spinner);
   }
 }

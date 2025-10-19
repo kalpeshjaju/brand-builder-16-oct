@@ -5,6 +5,13 @@ import { LLMService } from '../../genesis/llm-service.js';
 import { FileSystemUtils, logger, FormattingUtils, parseJSON, isBrandStrategyLike } from '../../utils/index.js';
 import { HTMLGenerator } from '../../presentation/html-generator.js';
 import { createIngestionService } from '../../ingestion/index.js';
+import {
+  sanitizeBrandName,
+  sanitizeFilePath,
+  sanitizeReportFormat,
+  sanitizeStrategyMode,
+} from '../../validation/input-schemas.js';
+import { handleCommandError, runWithRetry } from '../utils/error-handler.js';
 import chalk from 'chalk';
 import ora from 'ora';
 
@@ -156,13 +163,13 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
   const spinner = ora('Generating brand strategy...').start();
 
   try {
-    const { brand, mode, output, format, useContext = false } = options;
+    const brand = sanitizeBrandName(options.brand);
+    const mode = sanitizeStrategyMode(options.mode ?? 'professional');
+    const format = sanitizeReportFormat(options.format ?? 'markdown');
+    const outputPath = options.output ? sanitizeFilePath(options.output) : undefined;
+    const useContext = Boolean(options.useContext);
 
-    if (!brand) {
-      throw new Error('Brand name is required. Use --brand flag.');
-    }
-
-    logger.info('Generate command', { brand, mode, useContext });
+    logger.info('Generate command', { brand, mode, useContext, format, hasOutputPath: Boolean(outputPath) });
 
     // Load brand config
     const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
@@ -217,13 +224,15 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
       : `Generating ${mode} strategy using prompt registry...`;
 
     // Use the brand-strategy-gen prompt from registry
-    const response = await llm.promptFromRegistry(
-      'brand-strategy-gen',
-      {
-        brandName: brand,
-        industry: config.industry || config.category || 'general',
-        context: contextText
-      }
+    const response = await runWithRetry('llm:promptFromRegistry', () =>
+      llm.promptFromRegistry(
+        'brand-strategy-gen',
+        {
+          brandName: brand,
+          industry: config.industry || config.category || 'general',
+          context: contextText
+        }
+      )
     );
 
     const strategyText = response.content;
@@ -247,12 +256,13 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
     };
 
     // Save strategy based on format
-    const basePath = output || `outputs/strategies/${FormattingUtils.sanitizeFilename(brand)}-strategy`;
+    const basePath = (outputPath ?? `outputs/strategies/${FormattingUtils.sanitizeFilename(brand)}-strategy`)
+      .replace(/\.(json|md|markdown|html)$/i, '');
     const outputs: string[] = [];
 
     // Always save JSON
     if (format === 'json' || format === 'both') {
-      const jsonPath = output || `${basePath}.json`;
+      const jsonPath = `${basePath}.json`;
       await FileSystemUtils.writeJSON(jsonPath, outputPayload);
       outputs.push(jsonPath);
     }
@@ -295,9 +305,6 @@ export async function generateCommand(options: GenerateCommandOptions): Promise<
     });
 
   } catch (error) {
-    spinner.fail(chalk.red('Failed to generate strategy'));
-    logger.error('Generate command failed', error);
-    console.error(chalk.red(`Error: ${(error as Error).message}`));
-    process.exit(1);
+    handleCommandError('generate', error, spinner);
   }
 }
