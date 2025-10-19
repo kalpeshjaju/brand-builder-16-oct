@@ -42,6 +42,7 @@ import {
   checkClaimCommand,
   verifyStatementCommand,
 } from './commands/guardian.js';
+import { metricsCommand } from './commands/metrics.js';
 
 // Load environment variables
 config();
@@ -299,6 +300,16 @@ guardianCmd
   .description('Check statement consistency across sources')
   .requiredOption('-b, --brand <name>', 'Brand name')
   .action(verifyStatementCommand);
+
+// Metrics command
+program
+  .command('metrics')
+  .description('Display quality metrics dashboard')
+  .requiredOption('-b, --brand <name>', 'Brand name')
+  .option('-f, --format <type>', 'Output format (text|json|markdown)', 'text')
+  .option('-e, --export <path>', 'Export report to file')
+  .option('-v, --verbose', 'Show detailed charts')
+  .action(metricsCommand);
 
 // Parse and execute
 program.parse();
