@@ -20,6 +20,7 @@ import type {
   EvolutionPhase,
   BuildOutOutput
 } from '../types/evolution-types.js';
+import type { CreativeDirectionConfig } from '../types/evolution-config-types.js';
 
 const logger = new Logger('EvolutionOrchestrator');
 
@@ -29,6 +30,7 @@ export interface EvolutionConfig {
   competitorUrls?: string[];
   outputDir?: string;
   resumeFromPhase?: EvolutionPhase;
+  creativeDirectionConfig?: CreativeDirectionConfig; // For non-interactive mode
 }
 
 export class EvolutionOrchestrator {
@@ -193,7 +195,14 @@ export class EvolutionOrchestrator {
     try {
       const patterns = this.state.outputs.patterns!;
       const director = new CreativeDirector();
-      const direction = await director.captureDirection(patterns);
+
+      // Determine mode based on config availability
+      const mode = this.config.creativeDirectionConfig ? 'config' : 'interactive';
+      const direction = await director.captureDirection(
+        patterns,
+        mode,
+        this.config.creativeDirectionConfig
+      );
 
       this.state.outputs.direction = direction;
       this.markPhaseComplete('direction');

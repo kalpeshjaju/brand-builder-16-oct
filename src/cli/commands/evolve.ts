@@ -7,7 +7,8 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { EvolutionOrchestrator, type EvolutionConfig } from '../../evolution/evolution-orchestrator.js';
-import { Logger } from '../../utils/logger.js';
+import type { CreativeDirectionConfig } from '../../types/evolution-config-types.js';
+import { FileSystemUtils, Logger } from '../../utils/index.js';
 
 const logger = new Logger('EvolveCommand');
 
@@ -18,6 +19,7 @@ export const evolveCommand = new Command('evolve')
   .option('--competitors <urls...>', 'Competitor URLs (up to 5)')
   .option('--output <dir>', 'Output directory (default: ./outputs/evolution/<brand>)')
   .option('--resume <phase>', 'Resume from phase (research|patterns|direction|validation|buildout)')
+  .option('--config <path>', 'Creative direction config file (enables non-interactive mode)')
   .action(async (options) => {
     try {
       console.log(chalk.bold.cyan('\n╔═══════════════════════════════════════════════════════╗'));
@@ -25,12 +27,28 @@ export const evolveCommand = new Command('evolve')
       console.log(chalk.bold.cyan('║     Human-AI Collaborative Strategy Development       ║'));
       console.log(chalk.bold.cyan('╚═══════════════════════════════════════════════════════╝\n'));
 
+      // Load creative direction config if provided
+      let creativeConfig: CreativeDirectionConfig | undefined;
+      if (options.config) {
+        console.log(chalk.gray(`Loading config from: ${options.config}\n`));
+        try {
+          creativeConfig = await FileSystemUtils.readJSON<CreativeDirectionConfig>(options.config);
+          console.log(chalk.green('✓ Config loaded successfully (non-interactive mode)\n'));
+        } catch (error) {
+          throw new Error(
+            `Failed to load config file: ${options.config}\n` +
+            `Reason: ${(error as Error).message}`
+          );
+        }
+      }
+
       const config: EvolutionConfig = {
         brandName: options.brand,
         brandUrl: options.url,
         competitorUrls: options.competitors || [],
         outputDir: options.output,
         resumeFromPhase: options.resume,
+        creativeDirectionConfig: creativeConfig, // Pass config to orchestrator
       };
 
       logger.info('Starting evolution workshop', config);

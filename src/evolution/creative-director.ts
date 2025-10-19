@@ -1,7 +1,7 @@
 /**
  * Phase 3: Creative Direction Capture
  *
- * Interactive module where human provides creative direction
+ * Supports both interactive (inquirer prompts) and non-interactive (config-driven) modes
  * Based on patterns presented in Phase 2
  */
 
@@ -17,15 +17,104 @@ import type {
   Intuition,
   DirectionDecision
 } from '../types/evolution-types.js';
+import type { CreativeDirectionConfig, CreativeDirectorMode } from '../types/evolution-config-types.js';
 
 const logger = new Logger('CreativeDirector');
 
 export class CreativeDirector {
   /**
-   * Run interactive direction capture session
+   * Capture creative direction (supports interactive and config modes)
    */
-  async captureDirection(patterns: PatternPresentationOutput): Promise<CreativeDirectionOutput> {
-    logger.info('Starting creative direction session', { brand: patterns.brandName });
+  async captureDirection(
+    patterns: PatternPresentationOutput,
+    mode: CreativeDirectorMode = 'interactive',
+    config?: CreativeDirectionConfig
+  ): Promise<CreativeDirectionOutput> {
+    logger.info('Starting creative direction session', {
+      brand: patterns.brandName,
+      mode,
+    });
+
+    if (mode === 'config') {
+      return await this.captureFromConfig(patterns, config!);
+    }
+
+    return await this.captureInteractive(patterns);
+  }
+
+  /**
+   * Capture direction from pre-defined configuration (non-interactive)
+   */
+  private async captureFromConfig(
+    patterns: PatternPresentationOutput,
+    config: CreativeDirectionConfig
+  ): Promise<CreativeDirectionOutput> {
+    logger.info('Using config-driven mode', { brand: patterns.brandName });
+
+    console.log(chalk.bold.cyan('\n🎨 Creative Direction (Config Mode)\n'));
+    console.log(chalk.gray(`Brand: ${patterns.brandName}`));
+    console.log(chalk.gray(`Loading configuration...\n`));
+
+    // Process contradictions from config
+    const selectedContradictions: SelectedContradiction[] = [];
+    config.contradictions.forEach((item) => {
+      const contradiction = patterns.contradictions.find((c) => c.id === item.patternId);
+      if (contradiction && item.action !== 'skip') {
+        selectedContradictions.push({
+          patternId: item.patternId,
+          pattern: `${contradiction.brandSays} vs ${contradiction.evidenceShows}`,
+          direction: item.direction || 'Keep in consideration',
+          reasoning: contradiction.implication,
+        });
+      }
+    });
+
+    // Process white space from config
+    const whiteSpaceDecisions: WhiteSpaceDecision[] = [];
+    config.whiteSpace.forEach((item) => {
+      const ws = patterns.whiteSpace.find((w) => w.id === item.gapId);
+      if (ws) {
+        whiteSpaceDecisions.push({
+          gapId: item.gapId,
+          gap: ws.description,
+          decision: item.decision,
+          reasoning: item.reasoning,
+        });
+      }
+    });
+
+    // Process creative leaps from config
+    const creativeLeaps: CreativeLeap[] = config.creativeLeaps.map((leap) => ({
+      idea: leap.idea,
+      rationale: leap.rationale,
+      relatedPatterns: [], // Auto-detect not implemented in config mode
+    }));
+
+    // Process intuitions from config
+    const intuitions: Intuition[] = config.intuitions;
+
+    const output: CreativeDirectionOutput = {
+      brandName: patterns.brandName,
+      generatedAt: new Date().toISOString(),
+      selectedContradictions,
+      whiteSpaceDecisions,
+      creativeLeaps,
+      intuitions,
+      primaryDirection: config.primaryDirection,
+      keyThemes: config.keyThemes,
+    };
+
+    console.log(chalk.bold.green('\n✅ Creative direction loaded from config!\n'));
+    this.printSummary(output);
+
+    return output;
+  }
+
+  /**
+   * Capture direction interactively (original behavior)
+   */
+  private async captureInteractive(patterns: PatternPresentationOutput): Promise<CreativeDirectionOutput> {
+    logger.info('Using interactive mode', { brand: patterns.brandName });
 
     console.log(chalk.bold.cyan('\n🎨 Creative Direction Session\n'));
     console.log(chalk.gray(`Brand: ${patterns.brandName}\n`));
