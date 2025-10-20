@@ -75,7 +75,12 @@ export async function startOracleCommand(): Promise<void> {
       spinner.text = `Waiting for service to start (${attempts}/${maxAttempts})...`;
 
       if (await client.isHealthy()) {
+        const elapsedSeconds = Math.round((Date.now() - startedAt) / 1000);
         spinner.succeed(chalk.green('ORACLE service started successfully!'));
+        logger.info('ORACLE service healthy', {
+          elapsedSeconds,
+          attempts,
+        });
 
         const info = await client.getServiceInfo();
         console.log(chalk.bold('\n📦 Service Information:'));

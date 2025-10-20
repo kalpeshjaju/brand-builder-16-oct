@@ -5,6 +5,7 @@ import type { BrandConfiguration } from '../../types/brand-types.js';
 import type { ContextState } from '../../types/context-types.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
 import { IngestionService } from '../../ingestion/ingestion-service.js';
+import { handleCommandError } from '../utils/error-handler.js';
 import chalk from 'chalk';
 import ora from 'ora';
 
@@ -100,9 +101,8 @@ export async function ingestCommand(file: string, options: IngestCommandOptions)
     }
 
   } catch (error) {
-    spinner.fail(chalk.red('Ingestion failed'));
-    logger.error('Ingest command failed', error);
-    console.error(chalk.red(`Error: ${(error as Error).message}`));
-    process.exit(1);
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    logger.error('Ingest command failed', normalizedError);
+    handleCommandError('ingest', normalizedError, spinner);
   }
 }

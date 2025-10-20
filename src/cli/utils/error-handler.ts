@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import pRetry, { AbortError, type FailedAttemptError } from 'p-retry';
+import pRetry, { AbortError } from 'p-retry';
 import type { Ora } from 'ora';
 import { logger } from '../../utils/logger.js';
 import { RETRY_POLICY } from '../../config/constants.js';
@@ -32,7 +32,7 @@ export async function runWithRetry<T>(
   operationName: string,
   operation: () => Promise<T>,
   retryOptions: CommandRetryOptions = {},
-  onFailedAttempt?: (error: FailedAttemptError<T>) => void
+  onFailedAttempt?: (error: unknown) => void
 ): Promise<T> {
   const {
     retries = RETRY_POLICY.MAX_ATTEMPTS - 1,
@@ -63,9 +63,10 @@ export async function runWithRetry<T>(
       minTimeout,
       maxTimeout,
       onFailedAttempt: (error) => {
-        const message = error.message ?? 'Unknown error';
+        const normalizedAttemptError = error instanceof Error ? error : new Error(String(error));
+        const message = normalizedAttemptError.message ?? 'Unknown error';
         lastAttempt = error.attemptNumber;
-        lastError = error as Error;
+        lastError = normalizedAttemptError;
         const total = error.retriesLeft + error.attemptNumber;
         logger.warn(`Operation '${operationName}' failed (attempt ${error.attemptNumber}/${total})`, {
           error: message,
@@ -76,18 +77,19 @@ export async function runWithRetry<T>(
   } catch (error) {
     const normalizedError = error instanceof Error ? error : new Error(String(error));
 
-    // If it's an AbortError (from NonRetryableError), throw it directly
+    const attempts = lastAttempt > 0 ? lastAttempt : retries + 1;
+    const cause = lastError ?? normalizedError;
     if (normalizedError instanceof AbortError) {
-      throw normalizedError;
+      throw new CommandExecutionError(
+        `Operation '${operationName}' aborted after ${attempts} attempt${attempts === 1 ? '' : 's'}`,
+        { cause }
+      );
     }
 
-    const attempts = lastAttempt > 0 ? lastAttempt : retries + 1;
-    const wrapped = new CommandExecutionError(
+    throw new CommandExecutionError(
       `Operation '${operationName}' failed after ${attempts} attempt${attempts === 1 ? '' : 's'}`,
-      { cause: lastError ?? normalizedError }
+      { cause }
     );
-
-    throw wrapped;
   }
 }
 

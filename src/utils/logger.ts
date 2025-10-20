@@ -54,7 +54,10 @@ export class Logger {
   }
 
   metric(metricKey: string, value: number, metadata?: Record<string, unknown>): void {
-    metricsRegistry.observe(metricKey, value);
+    const labels = metadata
+      ? Object.fromEntries(Object.entries(metadata).map(([key, val]) => [key, String(val)]))
+      : undefined;
+    metricsRegistry.histogram(metricKey, value, labels);
     if (this.shouldLog('debug')) {
       console.log(this.formatMessage('debug', `metric:${metricKey}`, { value, ...metadata }));
     }

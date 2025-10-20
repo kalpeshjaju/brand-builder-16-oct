@@ -9,6 +9,12 @@ import { handleCommandError } from '../utils/error-handler.js';
 import chalk from 'chalk';
 import ora from 'ora';
 import path from 'path';
+import { z } from 'zod';
+
+const evolutionOutputSchema = z.union([
+  z.record(z.string(), z.unknown()),
+  z.array(z.unknown()),
+]);
 
 export async function auditCommand(options: AuditCommandOptions): Promise<void> {
   const spinner = ora('Auditing brand strategy...').start();
@@ -65,7 +71,13 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
       for (const file of evolutionFiles) {
         if (file.endsWith('.json')) {
           const data = await FileSystemUtils.readJSON(path.join(evolutionDir, file));
-          evolutionOutputs[file] = data;
+          const parsed = evolutionOutputSchema.safeParse(data);
+          if (!parsed.success) {
+            throw new Error(
+              `Invalid evolution output ${file}: ${parsed.error.issues[0]?.message ?? 'unknown validation error'}`
+            );
+          }
+          evolutionOutputs[file] = parsed.data;
         }
       }
     } catch (error) {

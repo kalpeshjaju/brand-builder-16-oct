@@ -10,8 +10,38 @@ import type {
   PromptCategory
 } from '../types/prompt-types.js';
 import { FileSystemUtils, Logger } from '../utils/index.js';
+import { z } from 'zod';
 
 const logger = new Logger('PromptRegistry');
+
+const promptCategorySchema = z.enum(['generation', 'analysis', 'qa', 'audit', 'research', 'synthesis']);
+
+const promptVariableSchema = z.object({
+  name: z.string().trim().min(1),
+  description: z.string().trim().min(1),
+  required: z.boolean(),
+  default: z.string().optional(),
+  example: z.string().optional(),
+  type: z.enum(['string', 'number', 'array', 'object']),
+});
+
+const promptTemplateInputSchema = z.object({
+  id: z.string().trim().min(1).regex(/^[a-z0-9][a-z0-9._:-]*$/i, 'Invalid prompt id'),
+  name: z.string().trim().min(1),
+  description: z.string().trim().min(1),
+  category: promptCategorySchema,
+  version: z.string().trim().min(1).regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[\w.-]+)?$/, 'Version must follow semver'),
+  systemPrompt: z.string().min(1),
+  userPromptTemplate: z.string().min(1),
+  temperature: z.number().min(0).max(2),
+  maxTokens: z.number().int().positive(),
+  seed: z.number().int().nonnegative().optional(),
+  tags: z.array(z.string().trim()).optional().default([]),
+  author: z.string().trim().min(1),
+  changelog: z.array(z.string().trim()).optional().default([]),
+  variables: z.array(promptVariableSchema).optional(),
+  active: z.boolean().optional().default(false),
+}).strict();
 
 export class PromptRegistry {
   private registryPath: string;
@@ -22,6 +52,17 @@ export class PromptRegistry {
   constructor() {
     this.registryPath = FileSystemUtils.resolvePath('.brandos/prompts/registry.json');
     this.versionsPath = FileSystemUtils.resolvePath('.brandos/prompts/versions');
+  }
+
+  private validateTemplateInput(
+    template: Omit<PromptTemplate, 'createdAt' | 'updatedAt' | 'usageCount'>
+  ) {
+    return promptTemplateInputSchema.parse({
+      ...template,
+      tags: template.tags ?? [],
+      changelog: template.changelog ?? [],
+      active: false,
+    });
   }
 
   /**
@@ -61,8 +102,10 @@ export class PromptRegistry {
   async registerPrompt(template: Omit<PromptTemplate, 'createdAt' | 'updatedAt' | 'usageCount'>): Promise<void> {
     if (!this.registry) await this.initialize();
 
-    const fullId = this.generateFullId(template.id, template.version);
-    const baseId = template.id;
+    const validated = this.validateTemplateInput(template);
+
+    const fullId = this.generateFullId(validated.id, validated.version);
+    const baseId = validated.id;
 
     // Check if prompt with this full ID already exists
     if (this.registry!.prompts[fullId]) {
@@ -72,7 +115,7 @@ export class PromptRegistry {
     // Create full template
     const now = new Date().toISOString();
     const fullTemplate: PromptTemplate = {
-      ...template,
+      ...validated,
       createdAt: now,
       updatedAt: now,
       usageCount: 0,
@@ -143,25 +186,30 @@ export class PromptRegistry {
     // Generate new version number
     const newVersion = this.incrementVersion(currentPrompt.version);
 
-    // Create new prompt with updates
-    const newPrompt: PromptTemplate = {
-      ...currentPrompt,
-      ...updates,
+    const changelog = updates.changelog
+      ? [...currentPrompt.changelog, ...updates.changelog]
+      : [...currentPrompt.changelog, `Updated to ${newVersion}`];
+
+    const templateInput: Omit<PromptTemplate, 'createdAt' | 'updatedAt' | 'usageCount'> = {
+      id: currentPrompt.id,
+      name: updates.name ?? currentPrompt.name,
+      description: updates.description ?? currentPrompt.description,
+      category: updates.category ?? currentPrompt.category,
       version: newVersion,
-      updatedAt: new Date().toISOString(),
-      usageCount: 0,
-      active: false
+      systemPrompt: updates.systemPrompt ?? currentPrompt.systemPrompt,
+      userPromptTemplate: updates.userPromptTemplate ?? currentPrompt.userPromptTemplate,
+      temperature: updates.temperature ?? currentPrompt.temperature,
+      maxTokens: updates.maxTokens ?? currentPrompt.maxTokens,
+      seed: updates.seed ?? currentPrompt.seed,
+      tags: updates.tags ?? currentPrompt.tags,
+      author: updates.author ?? currentPrompt.author,
+      changelog,
+      variables: updates.variables ?? currentPrompt.variables,
+      active: false,
     };
 
-    // Add changelog entry
-    if (updates.changelog) {
-      newPrompt.changelog = [...currentPrompt.changelog, ...updates.changelog];
-    } else {
-      newPrompt.changelog = [...currentPrompt.changelog, `Updated to ${newVersion}`];
-    }
-
     // Register the new version
-    await this.registerPrompt(newPrompt);
+    await this.registerPrompt(templateInput);
 
     logger.info('Prompt updated', { id, oldVersion: currentPrompt.version, newVersion });
 

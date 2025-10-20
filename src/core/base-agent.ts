@@ -149,11 +149,28 @@ export abstract class BaseAgent<
    * Execute with timeout
    */
   protected async withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+    let timeoutId: NodeJS.Timeout | undefined;
+    const startedAt = Date.now();
+
     const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error(`Agent timeout after ${timeoutMs}ms`)), timeoutMs);
+      timeoutId = setTimeout(() => {
+        const elapsed = Date.now() - startedAt;
+        const error = new Error(`Agent timeout after ${timeoutMs}ms (elapsed ${elapsed}ms)`);
+        this.logger.warn(`Agent '${this.name}' timed out`, {
+          timeoutMs,
+          elapsedMs: elapsed,
+        });
+        reject(error);
+      }, timeoutMs);
     });
 
-    return Promise.race([promise, timeoutPromise]);
+    try {
+      return await Promise.race([promise, timeoutPromise]);
+    } finally {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    }
   }
 
   /**
@@ -276,15 +293,15 @@ export abstract class BaseAgent<
     };
 
     if (context.hint) {
-      baseDetails.hint = context.hint;
+      baseDetails['hint'] = context.hint;
     }
 
     const maybeCause = (normalizedError as Error & { cause?: unknown }).cause;
     if (maybeCause instanceof Error) {
-      baseDetails.cause = maybeCause.message;
-      baseDetails.causeName = maybeCause.name;
+      baseDetails['cause'] = maybeCause.message;
+      baseDetails['causeName'] = maybeCause.name;
     } else if (maybeCause !== undefined) {
-      baseDetails.cause = maybeCause;
+      baseDetails['cause'] = maybeCause;
     }
 
     return JSON.stringify(baseDetails);

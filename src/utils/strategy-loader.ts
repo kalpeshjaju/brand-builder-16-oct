@@ -6,6 +6,7 @@ import { Logger } from './logger.js';
 import type { BrandStrategy } from '../types/index.js';
 import { extname } from 'path';
 import { readFile } from 'fs/promises';
+import { z } from 'zod';
 
 const logger = new Logger('StrategyLoader');
 
@@ -17,15 +18,6 @@ export interface LoadedStrategy {
     generatedAt?: string;
     parseMethod?: string;
   };
-  rawContent?: string;
-}
-
-interface StrategyFileShape {
-  brandName?: string;
-  generatedAt?: string;
-  mode?: string;
-  strategy?: BrandStrategy;
-  content?: string;
   rawContent?: string;
 }
 
@@ -57,6 +49,30 @@ export function isBrandStrategyLike(value: unknown): value is BrandStrategy {
 
   return STRATEGY_INDICATOR_KEYS.some((key) => key in value);
 }
+
+const brandStrategySchema = z
+  .object({})
+  .passthrough()
+  .superRefine((value, ctx) => {
+    if (!isBrandStrategyLike(value)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Object does not resemble a brand strategy',
+      });
+    }
+  })
+  .transform((value) => value as BrandStrategy);
+
+const strategyFileSchema = z
+  .object({
+    brandName: z.string().trim().min(1).optional(),
+    generatedAt: z.string().optional(),
+    mode: z.string().optional(),
+    strategy: brandStrategySchema.optional(),
+    content: z.string().optional(),
+    rawContent: z.string().optional(),
+  })
+  .passthrough();
 
 function extractStrategyFromContent(content: string): {
   strategy: BrandStrategy;
@@ -160,31 +176,41 @@ export async function loadStrategyFromFile(filePath: string): Promise<LoadedStra
   }
 
   // JSON and generic loader path
-  const fileData = await FileSystemUtils.readJSON<StrategyFileShape | BrandStrategy>(filePath);
+  const rawJson = await FileSystemUtils.readJSON<unknown>(filePath);
 
-  if (isBrandStrategyLike(fileData)) {
-    const data = fileData as BrandStrategy;
+  const directStrategy = brandStrategySchema.safeParse(rawJson);
+  if (directStrategy.success) {
+    const data = directStrategy.data;
     const brandName = (typeof data['brandName'] === 'string' ? data['brandName'] : undefined) || 'Unknown';
 
     return {
       brandName,
-      strategy: fileData,
+      strategy: data,
       metadata: {
         parseMethod: 'direct',
       },
     };
   }
 
-  const structured = fileData as StrategyFileShape;
+  const structuredResult = strategyFileSchema.safeParse(rawJson);
+  if (!structuredResult.success) {
+    const message = structuredResult.error.issues
+      .map((issue) => `${issue.path.join('.') || 'root'}: ${issue.message}`)
+      .join('; ');
+    throw new Error(`Strategy file is invalid: ${message}`);
+  }
 
-  if (structured.strategy && isBrandStrategyLike(structured.strategy)) {
-    const strategyBrandName = typeof structured.strategy['brandName'] === 'string'
-      ? structured.strategy['brandName']
+  const structured = structuredResult.data;
+
+  if (structured.strategy) {
+    const strategy = structured.strategy;
+    const strategyBrandName = typeof strategy['brandName'] === 'string'
+      ? strategy['brandName']
       : undefined;
 
     return {
       brandName: structured.brandName || strategyBrandName || 'Unknown',
-      strategy: structured.strategy,
+      strategy,
       metadata: {
         mode: structured.mode,
         generatedAt: structured.generatedAt,

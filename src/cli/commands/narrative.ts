@@ -5,9 +5,10 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { NarrativeBuilder } from '../../narrative/narrative-builder.js';
 import { NarrativeHTMLGenerator } from '../../narrative/narrative-html-generator.js';
-import { FileSystemUtils } from '../../utils/index.js';
+import { FileSystemUtils, logger } from '../../utils/index.js';
 import type { BrandStrategy } from '../../types/index.js';
 import path from 'path';
+import { handleCommandError } from '../utils/error-handler.js';
 
 export interface NarrativeCommandOptions {
   brand: string;
@@ -140,23 +141,18 @@ export async function narrativeCommand(options: NarrativeCommandOptions): Promis
 
     console.log(chalk.dim('\n💡 Tip: Open the HTML file in a browser for the best reading experience\n'));
   } catch (error) {
-    spinner.fail('Narrative generation failed');
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    logger.error('Narrative command failed', normalizedError);
 
-    if (error instanceof Error) {
-      console.error(chalk.red(`\n❌ Error: ${error.message}\n`));
-
-      if (error.message.includes('ENOENT')) {
-        console.log(chalk.yellow('💡 Troubleshooting:'));
-        console.log('   1. Ensure brand workspace exists (run: brandos init -b <brand>)');
-        console.log('   2. Generate strategy first (run: brandos generate -b <brand>)');
-        console.log('   3. Run evolution workshop (run: brandos evolve -b <brand>)');
-        console.log('   4. Run audit (run: brandos audit -i outputs/strategies/<brand>-strategy.json)');
-      }
-    } else {
-      console.error(chalk.red('\n❌ Unknown error occurred\n'));
+    if (normalizedError.message.includes('ENOENT')) {
+      console.log(chalk.yellow('💡 Troubleshooting:'));
+      console.log('   1. Ensure brand workspace exists (run: brandos init -b <brand>)');
+      console.log('   2. Generate strategy first (run: brandos generate -b <brand>)');
+      console.log('   3. Run evolution workshop (run: brandos evolve -b <brand>)');
+      console.log('   4. Run audit (run: brandos audit -i outputs/strategies/<brand>-strategy.json)');
     }
 
-    process.exit(1);
+    handleCommandError('narrative', normalizedError, spinner);
   }
 }
 

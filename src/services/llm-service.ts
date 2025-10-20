@@ -3,7 +3,6 @@ import { createHash } from 'crypto';
 import pRetry, { AbortError } from 'p-retry';
 import { CIRCUIT_BREAKER, LLM_DEFAULTS, METRICS_KEYS, RATE_LIMITING, RETRY_POLICY } from '../config/constants.js';
 import { logger } from '../utils/logger.js';
-import { metricsRegistry } from '../utils/metrics.js';
 
 export interface LLMServiceConfig {
   apiKey?: string;
@@ -402,9 +401,10 @@ Respond with only "VALID" or "INVALID" followed by a brief explanation.`
           minTimeout: RETRY_POLICY.INITIAL_DELAY_MS,
           maxTimeout: RETRY_POLICY.MAX_DELAY_MS,
           onFailedAttempt: (error) => {
+            const message = error instanceof Error ? error.message : 'Unknown error';
             logger.warn(`LLM ${operation} attempt ${error.attemptNumber} failed`, {
               retriesLeft: error.retriesLeft,
-              message: error.message,
+              message,
             });
           },
         })

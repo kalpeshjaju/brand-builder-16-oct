@@ -1,8 +1,9 @@
 // File system utilities
 
-import { mkdir, writeFile, readFile, access, readdir, stat } from 'fs/promises';
-import { dirname, resolve, join } from 'path';
+import { mkdir, readFile, access, readdir, stat, rename, open, unlink } from 'fs/promises';
+import { dirname, resolve, join, basename } from 'path';
 import { createHash } from 'crypto';
+import { sanitizeBrandName } from '../validation/input-schemas.js';
 
 export class FileSystemUtils {
   /**
@@ -30,7 +31,8 @@ export class FileSystemUtils {
     await this.ensureDir(dir);
 
     try {
-      await writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
+      const jsonContent = JSON.stringify(data, null, 2);
+      await this.writeAtomic(filePath, jsonContent);
     } catch (error) {
       throw new Error(
         `Failed to write JSON file at ${filePath}\n` +
@@ -48,13 +50,47 @@ export class FileSystemUtils {
     await this.ensureDir(dir);
 
     try {
-      await writeFile(filePath, content, 'utf-8');
+      await this.writeAtomic(filePath, content);
     } catch (error) {
       throw new Error(
         `Failed to write file at ${filePath}\n` +
         `Reason: ${(error as Error).message}\n` +
         `Fix: Ensure the directory exists and you have write permissions.`
       );
+    }
+  }
+
+  private static async writeAtomic(filePath: string, content: string): Promise<void> {
+    const dir = dirname(filePath);
+    const base = basename(filePath);
+    const tempPath = join(dir, `.${base}.${process.pid}.tmp`);
+    let handle: Awaited<ReturnType<typeof open>> | null = null;
+
+    try {
+      handle = await open(tempPath, 'w');
+      await handle.writeFile(content, 'utf-8');
+      await handle.sync();
+      await handle.close();
+      handle = null;
+      await rename(tempPath, filePath);
+    } catch (error) {
+      if (handle) {
+        try {
+          await handle.close();
+        } catch {
+          // ignore close errors
+        }
+      }
+      await this.safeUnlink(tempPath);
+      throw error;
+    }
+  }
+
+  private static async safeUnlink(filePath: string): Promise<void> {
+    try {
+      await unlink(filePath);
+    } catch {
+      // Ignore cleanup errors
     }
   }
 
@@ -129,23 +165,39 @@ export class FileSystemUtils {
    * 4) process.cwd()/.brandos (fallback for sandboxed environments)
    */
   static getBrandWorkspacePath(brandName: string): string {
-    const sanitized = brandName.toLowerCase().replace(/\s+/g, '-');
+    const normalizedName = sanitizeBrandName(brandName);
+
+    if (normalizedName.includes('/') || normalizedName.includes('\\')) {
+      throw new Error(`Invalid brand name: path separators are not allowed (${normalizedName})`);
+    }
+
+    const slug = normalizedName
+      .toLowerCase()
+      .replace(/[\s_]+/g, '-')
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+
+    if (!slug) {
+      throw new Error('Invalid brand name: produced empty slug after sanitization');
+    }
+
     const brandosHome = process.env['BRANDOS_HOME'];
     if (brandosHome && brandosHome.trim()) {
-      return join(brandosHome, sanitized);
+      return join(brandosHome, slug);
     }
 
     const xdgDataHome = process.env['XDG_DATA_HOME'];
     if (xdgDataHome && xdgDataHome.trim()) {
-      return join(xdgDataHome, 'brandos', sanitized);
+      return join(xdgDataHome, 'brandos', slug);
     }
 
     const homeDir = process.env['HOME'] || process.env['USERPROFILE'];
     if (homeDir && homeDir.trim()) {
-      return join(homeDir, '.brandos', sanitized);
+      return join(homeDir, '.brandos', slug);
     }
 
-    return join(process.cwd(), '.brandos', sanitized);
+    return join(process.cwd(), '.brandos', slug);
   }
 
   /**

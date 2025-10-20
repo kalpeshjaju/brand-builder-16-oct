@@ -5,6 +5,10 @@ import type { FileFormat } from '../../types/context-types.js';
 import { PDFParse } from 'pdf-parse';
 import { readFile } from 'fs/promises';
 
+const MAX_PDF_BYTES = 20 * 1024 * 1024; // 20MB safety limit
+const MAX_PDF_PAGES = 2000;
+const MAX_TEXT_CHARS = 500_000;
+
 export class PDFParser implements Parser {
   name = 'PDFParser';
   supportedFormats: FileFormat[] = ['pdf'];
@@ -16,14 +20,27 @@ export class PDFParser implements Parser {
     // Read PDF file
     const dataBuffer = await readFile(filePath);
 
+    if (dataBuffer.byteLength > MAX_PDF_BYTES) {
+      throw new Error(
+        `PDF exceeds maximum size of ${(MAX_PDF_BYTES / (1024 * 1024)).toFixed(1)}MB (received ${(dataBuffer.byteLength / (1024 * 1024)).toFixed(1)}MB)`
+      );
+    }
+
     // Parse PDF
     const parser = new PDFParse({ data: dataBuffer });
 
     try {
       const result = await parser.getText();
 
+      if (typeof result.pages === 'number' && result.pages > MAX_PDF_PAGES) {
+        throw new Error(`PDF has ${result.pages} pages which exceeds the maximum supported ${MAX_PDF_PAGES}`);
+      }
+
       // Extract text
-      const data = { text: result.text, numpages: result.pages };
+      const textContent = result.text.length > MAX_TEXT_CHARS
+        ? `${result.text.slice(0, MAX_TEXT_CHARS)}...`
+        : result.text;
+      const data = { text: textContent, numpages: result.pages };
 
       // Extract structured content
       const sections = this.extractSections(data.text);

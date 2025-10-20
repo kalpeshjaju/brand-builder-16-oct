@@ -7,6 +7,8 @@
 import { Logger } from './logger.js';
 
 const logger = new Logger('JSONParser');
+const MAX_JSON_LENGTH = 100_000;
+const LOG_PREVIEW_LENGTH = 200;
 
 export interface ParseResult<T> {
   success: boolean;
@@ -19,6 +21,21 @@ export interface ParseResult<T> {
  * Parse JSON from LLM response with multiple fallback strategies
  */
 export function parseJSON<T>(response: string, defaultValue?: T): ParseResult<T> {
+  if (response.length > MAX_JSON_LENGTH) {
+    const preview = response.slice(0, LOG_PREVIEW_LENGTH);
+    logger.error('JSON response exceeds maximum parse length', {
+      length: response.length,
+      maxLength: MAX_JSON_LENGTH,
+      preview,
+    });
+    return {
+      success: false,
+      error: `JSON response exceeds maximum length of ${MAX_JSON_LENGTH} characters`,
+      data: defaultValue,
+      method: 'length-check',
+    };
+  }
+
   // Strategy 1: Try to extract from markdown code block
   const codeBlockMatch = response.match(/```json\s*\n?([\s\S]*?)\n?```/);
   if (codeBlockMatch && codeBlockMatch[1]) {
@@ -76,7 +93,7 @@ export function parseJSON<T>(response: string, defaultValue?: T): ParseResult<T>
 
   // All strategies failed
   const errorMsg = `Failed to parse JSON from response after 5 strategies`;
-  logger.error(errorMsg, { responsePreview: response.slice(0, 200) });
+  logger.error(errorMsg, { responsePreview: response.slice(0, LOG_PREVIEW_LENGTH) });
 
   if (defaultValue !== undefined) {
     logger.warn('Using default value', { defaultValue });

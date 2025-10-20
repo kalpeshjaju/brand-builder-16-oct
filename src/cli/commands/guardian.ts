@@ -7,6 +7,7 @@ import { FactCheckerEnhanced } from '../../genesis/guardian/fact-checker-enhance
 import { CrossSourceVerifier } from '../../genesis/guardian/cross-source-verifier.js';
 import chalk from 'chalk';
 import ora from 'ora';
+import { handleCommandError } from '../utils/error-handler.js';
 
 export interface GuardianCommandOptions {
   brand: string;
@@ -89,10 +90,9 @@ export async function checkClaimCommand(
 
     console.log();
   } catch (error) {
-    spinner.fail(chalk.red('Claim verification failed'));
-    logger.error('Check claim command failed', error);
-    console.error(chalk.red(`Error: ${(error as Error).message}`));
-    process.exit(1);
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    logger.error('Check claim command failed', normalizedError);
+    handleCommandError('guardian:check-claim', normalizedError, spinner);
   }
 }
 
@@ -173,10 +173,9 @@ export async function verifyStatementCommand(
 
     console.log();
   } catch (error) {
-    spinner.fail(chalk.red('Statement verification failed'));
-    logger.error('Verify statement command failed', error);
-    console.error(chalk.red(`Error: ${(error as Error).message}`));
-    process.exit(1);
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    logger.error('Verify statement command failed', normalizedError);
+    handleCommandError('guardian:verify-statement', normalizedError, spinner);
   }
 }
 

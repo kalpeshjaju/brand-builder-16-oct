@@ -8,6 +8,7 @@ import type { BrandConfiguration } from '../../types/brand-types.js';
 import { createQualityDashboard } from '../../genesis/quality-metrics-dashboard.js';
 import { FileSystemUtils } from '../../utils/file-system.js';
 import { logger } from '../../utils/logger.js';
+import { handleCommandError } from '../utils/error-handler.js';
 import chalk from 'chalk';
 
 export interface MetricsCommandOptions {
@@ -57,16 +58,10 @@ export async function metricsCommand(options: MetricsCommandOptions): Promise<vo
 
     logger.info('Quality metrics displayed', { brand, format });
   } catch (error) {
-    logger.error('Failed to generate quality metrics', {
-      brand,
-      error: (error as Error).message,
-    });
-
-    console.error(chalk.red(`\n❌ Failed to generate quality metrics`));
-    console.error(chalk.red(`Reason: ${(error as Error).message}`));
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    logger.error('Failed to generate quality metrics', normalizedError);
+    handleCommandError('metrics', normalizedError);
     console.error(chalk.yellow(`\nRun with --verbose for more details`));
-
-    process.exit(1);
   }
 }
 
