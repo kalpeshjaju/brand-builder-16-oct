@@ -4,7 +4,7 @@
  * Part of the Validation Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Triple Extractor analysis result
@@ -23,7 +23,7 @@ interface TripleExtractorResult {
  * Layer 3: Extracts subject-predicate-object triples
  */
 export class TripleExtractorAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Triple Extractor',
       version: '1.0.0',

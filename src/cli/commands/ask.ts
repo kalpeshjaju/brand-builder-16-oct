@@ -4,6 +4,7 @@ import type { AskCommandOptions } from '../../types/index.js';
 import { LLMService } from '../../genesis/llm-service.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
 import { OracleClient } from '../../library/oracle-client.js';
+import type { ContextState } from '../../types/context-types.js';
 import { sanitizeAskFormat, sanitizeBrandName, sanitizeQuery } from '../../validation/input-schemas.js';
 import { handleCommandError, runWithRetry } from '../utils/error-handler.js';
 import chalk from 'chalk';
@@ -61,8 +62,13 @@ export async function askCommand(query: string, options: AskCommandOptions): Pro
       const contextPath = `${workspacePath}/data/context-state.json`;
 
       if (await FileSystemUtils.fileExists(contextPath)) {
-        const contextState = await FileSystemUtils.readJSON(contextPath);
-        context = `Brand: ${brand}\nFiles indexed: ${(contextState as any).stats.totalFiles}\nNote: Could not retrieve specific content.`;
+        const contextState = await FileSystemUtils.readJSON<ContextState>(contextPath);
+        const totalFiles = contextState.stats?.totalFiles ?? 0;
+        context = [
+          `Brand: ${brand}`,
+          `Files indexed: ${totalFiles}`,
+          'Note: Could not retrieve specific content.',
+        ].join('\n');
       } else {
         context = `Brand: ${brand}\nNote: No workspace found. Initialize with 'brandos init --brand "${brand}"'`;
       }

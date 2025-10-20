@@ -4,7 +4,7 @@
  * Part of the Validation Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Proof Validator analysis result
@@ -23,7 +23,7 @@ interface ProofValidatorResult {
  * Layer 5: Validates proof and evidence
  */
 export class ProofValidatorAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Proof Validator',
       version: '1.0.0',

@@ -4,7 +4,7 @@
  * Part of the Strategy Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Journey Mapper analysis result
@@ -23,7 +23,7 @@ interface JourneyMapperResult {
  * Maps customer journeys and touchpoints
  */
 export class JourneyMapperAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Journey Mapper',
       version: '1.0.0',

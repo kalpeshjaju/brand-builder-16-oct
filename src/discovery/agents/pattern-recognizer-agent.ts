@@ -4,7 +4,7 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Pattern Recognizer analysis result
@@ -23,7 +23,7 @@ interface PatternRecognizerResult {
  * Recognizes patterns across brand data
  */
 export class PatternRecognizerAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Pattern Recognizer',
       version: '1.0.0',

@@ -9,6 +9,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
+import { CommandExecutionError } from '../cli/utils/error-handler.js';
 import { Logger } from '../utils/logger.js';
 import { ResearchBlitz, type ResearchBlitzConfig } from './research-blitz.js';
 import { PatternPresenter } from './pattern-presenter.js';
@@ -113,7 +114,13 @@ export class EvolutionOrchestrator {
     } catch (error) {
       logger.error('Evolution workflow failed', error);
       await this.saveState(); // Save state even on failure
-      throw error;
+
+      if (error instanceof CommandExecutionError) {
+        throw error;
+      }
+
+      const message = `Evolution workflow failed for ${this.config.brandName}`;
+      throw new CommandExecutionError(message, { cause: error });
     }
   }
 
@@ -147,8 +154,14 @@ export class EvolutionOrchestrator {
       console.log(chalk.gray(`  • Found ${research.marketGaps.length} market gaps`));
       console.log(chalk.gray(`  • Detected ${research.contradictions.length} contradictions\n`));
     } catch (error) {
-      spinner.fail('Research blitz failed');
-      throw error;
+      const normalizedError = error instanceof Error ? error : new Error(String(error));
+      const errorMessage = normalizedError.message;
+      spinner.fail(`Research blitz failed for ${this.config.brandName}: ${errorMessage}`);
+      logger.error(`Phase 'research' failed for ${this.config.brandName}`, normalizedError);
+      throw new CommandExecutionError(
+        `Phase 'research' failed for ${this.config.brandName}`,
+        { cause: normalizedError }
+      );
     }
   }
 
@@ -181,8 +194,14 @@ export class EvolutionOrchestrator {
       console.log(chalk.gray(`  • ${patterns.whiteSpace.length} white space opportunities`));
       console.log(chalk.gray(`  • ${patterns.languageGaps.length} language gaps\n`));
     } catch (error) {
-      spinner.fail('Pattern presentation failed');
-      throw error;
+      const normalizedError = error instanceof Error ? error : new Error(String(error));
+      const errorMessage = normalizedError.message;
+      spinner.fail(`Pattern presentation failed for ${this.config.brandName}: ${errorMessage}`);
+      logger.error(`Phase 'patterns' failed for ${this.config.brandName}`, normalizedError);
+      throw new CommandExecutionError(
+        `Phase 'patterns' failed for ${this.config.brandName}`,
+        { cause: normalizedError }
+      );
     }
   }
 
@@ -214,8 +233,10 @@ export class EvolutionOrchestrator {
       const markdown = director.generateMarkdownSummary(direction);
       await this.saveOutput('03-creative-direction.md', markdown, 'text');
     } catch (error) {
-      logger.error('Creative direction failed', error);
-      throw error;
+      const normalizedError = error instanceof Error ? error : new Error(String(error));
+      const message = `Creative direction failed for ${this.config.brandName}`;
+      logger.error(message, normalizedError);
+      throw new CommandExecutionError(message, { cause: normalizedError });
     }
   }
 
@@ -257,8 +278,14 @@ export class EvolutionOrchestrator {
         console.log();
       }
     } catch (error) {
-      spinner.fail('Validation failed');
-      throw error;
+      const normalizedError = error instanceof Error ? error : new Error(String(error));
+      const errorMessage = normalizedError.message;
+      spinner.fail(`Validation failed for ${this.config.brandName}: ${errorMessage}`);
+      logger.error(`Phase 'validation' failed for ${this.config.brandName}`, normalizedError);
+      throw new CommandExecutionError(
+        `Phase 'validation' failed for ${this.config.brandName}`,
+        { cause: normalizedError }
+      );
     }
   }
 
@@ -296,8 +323,14 @@ export class EvolutionOrchestrator {
       console.log(chalk.gray(`  • ${buildout.channelStrategy.length} channel strategies`));
       console.log(chalk.gray(`  • ${buildout.implementationRoadmap.length}-phase roadmap\n`));
     } catch (error) {
-      spinner.fail('Build-out failed');
-      throw error;
+      const normalizedError = error instanceof Error ? error : new Error(String(error));
+      const errorMessage = normalizedError.message;
+      spinner.fail(`Build-out failed for ${this.config.brandName}: ${errorMessage}`);
+      logger.error(`Phase 'buildout' failed for ${this.config.brandName}`, normalizedError);
+      throw new CommandExecutionError(
+        `Phase 'buildout' failed for ${this.config.brandName}`,
+        { cause: normalizedError }
+      );
     }
   }
 

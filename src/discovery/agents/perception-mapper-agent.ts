@@ -4,7 +4,7 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Perception Mapper analysis result
@@ -23,7 +23,7 @@ interface PerceptionMapperResult {
  * Maps brand perception across stakeholders
  */
 export class PerceptionMapperAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Perception Mapper',
       version: '1.0.0',

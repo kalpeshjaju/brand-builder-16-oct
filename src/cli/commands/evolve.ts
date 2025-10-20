@@ -9,6 +9,7 @@ import chalk from 'chalk';
 import { EvolutionOrchestrator, type EvolutionConfig } from '../../evolution/evolution-orchestrator.js';
 import type { CreativeDirectionConfig } from '../../types/evolution-config-types.js';
 import { FileSystemUtils, Logger } from '../../utils/index.js';
+import { CommandExecutionError, handleCommandError } from '../utils/error-handler.js';
 
 const logger = new Logger('EvolveCommand');
 
@@ -35,9 +36,10 @@ export const evolveCommand = new Command('evolve')
           creativeConfig = await FileSystemUtils.readJSON<CreativeDirectionConfig>(options.config);
           console.log(chalk.green('✓ Config loaded successfully (non-interactive mode)\n'));
         } catch (error) {
-          throw new Error(
-            `Failed to load config file: ${options.config}\n` +
-            `Reason: ${(error as Error).message}`
+          const normalized = error instanceof Error ? error : new Error(String(error));
+          throw new CommandExecutionError(
+            `Failed to load config file: ${options.config}`,
+            { cause: normalized }
           );
         }
       }
@@ -83,13 +85,11 @@ export const evolveCommand = new Command('evolve')
       console.log(chalk.gray('  3. Begin implementation based on roadmap'));
       console.log(chalk.gray('  4. Track success metrics defined in the strategy\n'));
 
-      process.exit(0);
+      return;
     } catch (error) {
-      logger.error('Evolution workshop failed', error);
-      console.error(chalk.red('\n❌ Evolution workshop failed:'));
-      console.error(chalk.red((error as Error).message));
-      console.error(chalk.gray('\nSee logs for details.\n'));
-      process.exit(1);
+      const normalizedError = error instanceof Error ? error : new Error(String(error));
+      logger.error(`Evolution workshop failed for ${options.brand}`, normalizedError);
+      handleCommandError('evolve', normalizedError);
     }
   });
 

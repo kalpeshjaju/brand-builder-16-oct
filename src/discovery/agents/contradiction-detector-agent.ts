@@ -4,7 +4,10 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
  * Contradiction finding structure
@@ -36,7 +39,7 @@ interface ContradictionAnalysis {
  * Identifies gaps between what brands say and what they do
  */
 export class ContradictionDetectorAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Contradiction Detector',
       version: '1.0.0',
@@ -89,30 +92,27 @@ export class ContradictionDetectorAgent extends BaseAgent {
    * Extract brand content from various sources
    */
   private async extractBrandContent(input: AgentInput): Promise<any> {
-    const content = {
-      claims: [] as string[],
-      evidence: [] as string[],
-      promises: [] as string[],
-      experiences: [] as string[],
+    const rawData = isRecord(input.data) ? input.data : {};
+    const websiteContent = rawData['websiteContent'];
+    const reviewsValue = rawData['reviews'];
+    const socialMediaValue = rawData['socialMedia'];
+
+    const claimsSource = typeof websiteContent === 'string'
+      ? websiteContent
+      : Array.isArray(websiteContent)
+        ? websiteContent.map(String).join('\n')
+        : '';
+
+    const promisesSource = claimsSource;
+
+    const reviews = Array.isArray(reviewsValue) ? reviewsValue : [];
+
+    return {
+      claims: claimsSource ? this.extractClaims(claimsSource) : [],
+      evidence: socialMediaValue ? this.extractEvidence(socialMediaValue) : [],
+      promises: promisesSource ? this.extractPromises(promisesSource) : [],
+      experiences: reviews.length > 0 ? this.extractExperiences(reviews) : [],
     };
-
-    // Extract from website if available
-    if (input.data?.websiteContent) {
-      content.claims = this.extractClaims(input.data.websiteContent);
-      content.promises = this.extractPromises(input.data.websiteContent);
-    }
-
-    // Extract from customer reviews if available
-    if (input.data?.reviews) {
-      content.experiences = this.extractExperiences(input.data.reviews);
-    }
-
-    // Extract from social media if available
-    if (input.data?.socialMedia) {
-      content.evidence = this.extractEvidence(input.data.socialMedia);
-    }
-
-    return content;
   }
 
   /**

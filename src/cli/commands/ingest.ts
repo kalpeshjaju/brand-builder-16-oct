@@ -2,6 +2,7 @@
 
 import type { IngestCommandOptions } from '../../types/index.js';
 import type { BrandConfiguration } from '../../types/brand-types.js';
+import type { ContextState } from '../../types/context-types.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
 import { IngestionService } from '../../ingestion/ingestion-service.js';
 import chalk from 'chalk';
@@ -71,9 +72,9 @@ export async function ingestCommand(file: string, options: IngestCommandOptions)
     const contextPath = `${workspacePath}/data/context-state.json`;
 
     if (await FileSystemUtils.fileExists(contextPath)) {
-      const contextState = await FileSystemUtils.readJSON(contextPath);
-      (contextState as any).stats.totalFiles += 1;
-      (contextState as any).stats.processedFiles += 1;
+      const contextState = await FileSystemUtils.readJSON<ContextState>(contextPath);
+      contextState.stats.totalFiles += 1;
+      contextState.stats.processedFiles += 1;
       await FileSystemUtils.writeJSON(contextPath, contextState);
     }
 

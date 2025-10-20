@@ -4,7 +4,7 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Inflection Detector analysis result
@@ -23,7 +23,7 @@ interface InflectionDetectorResult {
  * Detects market inflection points and disruptions
  */
 export class InflectionDetectorAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Inflection Detector',
       version: '1.0.0',

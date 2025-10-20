@@ -4,7 +4,7 @@
  * Part of the Analysis Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Risk Assessor result structure
@@ -23,7 +23,7 @@ interface RiskAssessorResult {
  * Assesses brand and strategy risks
  */
 export class RiskAssessorAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Risk Assessor',
       version: '1.0.0',

@@ -78,6 +78,55 @@ describe('JSON Parser', () => {
         expect(result.data.disabled).toBe(false);
       }
     });
+
+    it('extracts JSON from markdown code fence', () => {
+      const json = [
+        'Here is the structured data you requested:',
+        '```json',
+        '{ "name": "Mock", "mode": "code-fence" }',
+        '```',
+        'Let me know if you need anything else.',
+      ].join('\n');
+
+      const result = parseJSON(json);
+
+      expect(result.success).toBe(true);
+      expect(result.method).toBe('code-block');
+      if (result.success) {
+        expect(result.data.name).toBe('Mock');
+        expect(result.data.mode).toBe('code-fence');
+      }
+    });
+
+    it('returns default value when parsing fails', () => {
+      const result = parseJSON('not-json', { fallback: true });
+
+      expect(result.success).toBe(false);
+      expect(result.data).toEqual({ fallback: true });
+      expect(result.method).toBe('default');
+    });
+
+    it('recovers from common JSON issues', () => {
+      const malformed = "{'name': 'Recovered',}\nExtra commentary";
+      const result = parseJSON(malformed);
+
+      expect(result.success).toBe(true);
+      expect(result.method).toBe('fixed');
+      if (result.success) {
+        expect(result.data.name).toBe('Recovered');
+      }
+    });
+
+    it('cleans leading text before parsing', () => {
+      const noisy = 'Result:\n\n{"status":"ok","values":[1,2,3]} trailing text';
+      const result = parseJSON(noisy);
+
+      expect(result.success).toBe(true);
+      expect(['cleaned', 'object-match']).toContain(result.method);
+      if (result.success) {
+        expect(result.data.status).toBe('ok');
+      }
+    });
   });
 
   describe('parseJSONArray', () => {
@@ -97,6 +146,17 @@ describe('JSON Parser', () => {
       const result = parseJSONArray(json);
 
       expect(result.success).toBe(false);
+    });
+
+    it('extracts array from enclosing object', () => {
+      const json = '{"items": [1, 2, 3]}';
+      const result = parseJSONArray(json, []);
+
+      expect(result.success).toBe(true);
+      expect(result.method).toBe('extracted-from-object');
+      if (result.success) {
+        expect(result.data).toEqual([1, 2, 3]);
+      }
     });
 
     it('should handle empty array', () => {

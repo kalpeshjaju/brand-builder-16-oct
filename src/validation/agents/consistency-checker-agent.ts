@@ -4,7 +4,7 @@
  * Part of the Validation Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Consistency Checker analysis result
@@ -23,7 +23,7 @@ interface ConsistencyCheckerResult {
  * Layer 8: Checks overall consistency
  */
 export class ConsistencyCheckerAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Consistency Checker',
       version: '1.0.0',

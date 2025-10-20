@@ -4,7 +4,7 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Pricing Analyst analysis result
@@ -23,7 +23,7 @@ interface PricingAnalystResult {
  * Analyzes pricing strategies and opportunities
  */
 export class PricingAnalystAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Pricing Analyst',
       version: '1.0.0',

@@ -14,6 +14,10 @@ import { ResearchDatabase } from './research-database/index.js';
 import { FileSystemUtils } from '../utils/file-system.js';
 import { logger } from '../utils/logger.js';
 
+interface QualityMetricsHistoryFile {
+  history?: QualityMetrics[];
+}
+
 export interface QualityMetrics {
   // Research Coverage
   research: {
@@ -321,8 +325,8 @@ Quality Dashboard for ${metrics.metadata.brandName}
       // Load existing metrics
       let history: QualityMetrics[] = [];
       if (await FileSystemUtils.fileExists(this.metricsFile)) {
-        const content = await FileSystemUtils.readJSON(this.metricsFile);
-        history = (content as any).history || [];
+        const content = await FileSystemUtils.readJSON<QualityMetricsHistoryFile>(this.metricsFile);
+        history = Array.isArray(content.history) ? content.history : [];
       }
 
       // Add current metrics

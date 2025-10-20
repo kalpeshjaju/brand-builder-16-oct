@@ -6,23 +6,33 @@ import { Logger } from '../utils/index.js';
 
 const logger = new Logger('OracleClient');
 
+export interface OracleChunkMetadata {
+  source?: string;
+  source_type?: string;
+  url?: string;
+  brand?: string;
+  [key: string]: unknown;
+}
+
 export interface OracleSearchResult {
   text: string;
   score: number;
-  metadata: Record<string, any>;
+  metadata: OracleChunkMetadata;
   chunk_id: string;
   rank: number;
   rerank_score?: number;
 }
 
+export interface OracleContextSource {
+  chunk_id: string;
+  score: number;
+  rank: number;
+  metadata: OracleChunkMetadata;
+}
+
 export interface OracleContextResult {
   context: string;
-  sources: Array<{
-    chunk_id: string;
-    score: number;
-    rank: number;
-    metadata: Record<string, any>;
-  }>;
+  sources: OracleContextSource[];
   total_chars: number;
   num_sources: number;
 }
@@ -105,7 +115,7 @@ export class OracleClient {
     brand: string,
     docId: string,
     text: string,
-    metadata?: Record<string, any>
+    metadata?: OracleChunkMetadata
   ): Promise<{
     success: boolean;
     indexed: number;
@@ -119,12 +129,14 @@ export class OracleClient {
       total_chars: number;
     };
   }> {
+    const payloadMetadata: OracleChunkMetadata = metadata ?? {};
+
     const operation = () =>
       this.client.post('/index', {
         brand,
         doc_id: docId,
         text,
-        metadata: metadata || {}
+        metadata: payloadMetadata
       });
 
     try {
@@ -302,7 +314,7 @@ export class OracleClient {
 
       if (axiosError.response) {
         const status = axiosError.response.status;
-        const detail = (axiosError.response.data as any)?.detail || 'Unknown error';
+        const detail = this.extractErrorDetail(axiosError.response.data) || 'Unknown error';
 
         logger.error('ORACLE service error', { status, detail });
 
@@ -324,7 +336,28 @@ export class OracleClient {
     }
 
     logger.error('Unexpected error', { error });
-    return new Error(`${context}: ${(error as Error).message}`);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return new Error(`${context}: ${message}`);
+  }
+
+  private extractErrorDetail(payload: unknown): string | undefined {
+    if (typeof payload === 'string') {
+      return payload;
+    }
+
+    if (typeof payload === 'object' && payload !== null) {
+      const record = payload as Record<string, unknown>;
+      const candidates = ['detail', 'message', 'error'];
+
+      for (const field of candidates) {
+        const value = record[field];
+        if (typeof value === 'string' && value.trim().length > 0) {
+          return value;
+        }
+      }
+    }
+
+    return undefined;
   }
 
   /**

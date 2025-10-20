@@ -42,12 +42,20 @@ const STRATEGY_INDICATOR_KEYS = [
   'proofPoints',
 ] as const;
 
+type StrategyRecord = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is StrategyRecord =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * Narrow an unknown value to BrandStrategy by checking for core strategy keys.
+ */
 export function isBrandStrategyLike(value: unknown): value is BrandStrategy {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+  if (!isRecord(value)) {
     return false;
   }
 
-  return STRATEGY_INDICATOR_KEYS.some((key) => key in (value as Record<string, unknown>));
+  return STRATEGY_INDICATOR_KEYS.some((key) => key in value);
 }
 
 function extractStrategyFromContent(content: string): {
@@ -61,11 +69,16 @@ function extractStrategyFromContent(content: string): {
   }
 
   const parsed = result.data;
-  const candidate = isBrandStrategyLike(parsed)
-    ? parsed
-    : (parsed?.['brandStrategy'] as unknown);
 
-  if (!isBrandStrategyLike(candidate)) {
+  let candidate: BrandStrategy | undefined;
+
+  if (isBrandStrategyLike(parsed)) {
+    candidate = parsed;
+  } else if (isRecord(parsed) && isBrandStrategyLike(parsed['brandStrategy'])) {
+    candidate = parsed['brandStrategy'];
+  }
+
+  if (!candidate) {
     throw new Error('Parsed content does not contain a valid brand strategy object.');
   }
 
@@ -85,9 +98,12 @@ export async function loadStrategyFromFile(filePath: string): Promise<LoadedStra
     if (jsonFence && jsonFence[1]) {
       const { strategy, parseMethod } = extractStrategyFromContent(jsonFence[1]);
       const titleMatch = /^#\s+(.+)$/m.exec(text);
-      const brandName = (titleMatch && titleMatch[1])
+      const derivedBrandName = titleMatch && titleMatch[1]
         ? titleMatch[1].replace(/ Brand Strategy$/i, '').trim()
-        : ((strategy as any)?.brandName as string) || 'Unknown';
+        : strategy.brandName;
+      const brandName = derivedBrandName && derivedBrandName.trim().length > 0
+        ? derivedBrandName
+        : 'Unknown';
       return {
         brandName,
         strategy,
@@ -127,9 +143,9 @@ export async function loadStrategyFromFile(filePath: string): Promise<LoadedStra
     if (vision) candidate.vision = vision;
     if (values.length) candidate.values = values;
     if (positioning) candidate.positioning = positioning;
-    if (personality.length) candidate.personality = personality as any;
-    if (keyMessages.length) candidate.keyMessages = keyMessages as any;
-    if (differentiators.length) candidate.differentiators = differentiators as any;
+    if (personality.length) candidate.personality = personality;
+    if (keyMessages.length) candidate.keyMessages = keyMessages;
+    if (differentiators.length) candidate.differentiators = differentiators;
 
     if (isBrandStrategyLike(candidate)) {
       return {

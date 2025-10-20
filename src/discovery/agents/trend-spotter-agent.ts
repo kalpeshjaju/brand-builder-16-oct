@@ -4,7 +4,7 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Trend Spotter analysis result
@@ -23,7 +23,7 @@ interface TrendSpotterResult {
  * Identifies emerging trends and patterns
  */
 export class TrendSpotterAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Trend Spotter',
       version: '1.0.0',

@@ -6,6 +6,12 @@ import chalk from 'chalk';
 import ora from 'ora';
 import { spawn } from 'child_process';
 import { platform } from 'os';
+import {
+  sanitizeBrandName,
+  sanitizePositiveInteger,
+  sanitizeQuery
+} from '../../validation/input-schemas.js';
+import { CommandExecutionError, handleCommandError } from '../utils/error-handler.js';
 
 /**
  * Get or create OracleClient instance (lazy initialization)
@@ -39,10 +45,10 @@ export async function startOracleCommand(): Promise<void> {
 
     // Check if oracle-service directory exists
     if (!await FileSystemUtils.fileExists(`${oracleDir}/main.py`)) {
-      spinner.fail(chalk.red('oracle-service directory not found'));
-      console.error(chalk.red('\nError: oracle-service/main.py not found'));
-      console.log(chalk.yellow('Fix: Ensure oracle-service directory is present in project root'));
-      process.exit(1);
+      throw new CommandExecutionError(
+        'oracle-service/main.py not found',
+        { cause: new Error('oracle-service directory is missing or incomplete') }
+      );
     }
 
     // Determine Python command
@@ -58,6 +64,7 @@ export async function startOracleCommand(): Promise<void> {
     childProcess.unref();
 
     // Wait for service to be ready (max 30 seconds)
+    const startedAt = Date.now();
     let attempts = 0;
     const maxAttempts = 30;
 
@@ -89,21 +96,32 @@ export async function startOracleCommand(): Promise<void> {
       }
     }
 
-    spinner.fail(chalk.red('Service failed to start within timeout'));
-    console.error(chalk.red('\nService did not respond after 30 seconds'));
-    console.log(chalk.yellow('Fix: Check oracle-service logs for errors'));
-    console.log(chalk.yellow('Try: cd oracle-service && python3 main.py (to see logs)'));
-    process.exit(1);
-
+    const elapsedSeconds = Math.round((Date.now() - startedAt) / 1000);
+    throw new CommandExecutionError(
+      'ORACLE service did not respond within timeout',
+      { cause: new Error(`Timed out after ${elapsedSeconds} seconds`) }
+    );
   } catch (error) {
-    spinner.fail(chalk.red('Failed to start service'));
-    logger.error('Start ORACLE failed', error);
-    console.error(chalk.red(`\nError: ${(error as Error).message}`));
+    const normalized =
+      error instanceof CommandExecutionError
+        ? error
+        : new CommandExecutionError(
+          'Failed to start ORACLE service',
+          { cause: error instanceof Error ? error : new Error(String(error)) }
+        );
+
+    logger.error('Start ORACLE failed', normalized);
+    handleCommandError('oracle:start', normalized, spinner);
+
+    if (normalized.message.includes('main.py')) {
+      console.log(chalk.yellow('\nFix: Ensure oracle-service directory exists in the project root and contains main.py'));
+    }
+
     console.log(chalk.yellow('\nTroubleshooting:'));
     console.log('  1. Ensure Python 3.10+ is installed');
     console.log('  2. Install dependencies: cd oracle-service && pip install -r requirements.txt');
     console.log('  3. Check port 8765 is not in use');
-    process.exit(1);
+    console.log('  4. View logs: cd oracle-service && python3 main.py');
   }
 }
 
@@ -179,10 +197,10 @@ export async function statusOracleCommand(): Promise<void> {
     console.log();
 
   } catch (error) {
-    spinner.fail(chalk.red('Failed to get service status'));
-    logger.error('Status check failed', error);
-    console.error(chalk.red(`\nError: ${(error as Error).message}\n`));
-    process.exit(1);
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    logger.error('Status check failed', normalizedError);
+    const wrapped = new CommandExecutionError('Failed to get service status', { cause: normalizedError });
+    handleCommandError('oracle:status', wrapped, spinner);
   }
 }
 
@@ -190,11 +208,12 @@ export async function statusOracleCommand(): Promise<void> {
  * Reindex all documents for a brand
  */
 export async function reindexOracleCommand(options: { brand: string }): Promise<void> {
-  const { brand } = options;
   const spinner = ora('Reindexing documents...').start();
   const client = getClient();
 
   try {
+    const brand = sanitizeBrandName(options.brand);
+
     // Check if service is running
     if (!await client.isHealthy()) {
       throw new Error('ORACLE service is not running. Start it with: brandos oracle start');
@@ -216,10 +235,12 @@ export async function reindexOracleCommand(options: { brand: string }): Promise<
     console.log();
 
   } catch (error) {
-    spinner.fail(chalk.red('Reindex failed'));
-    logger.error('Reindex failed', error);
-    console.error(chalk.red(`\nError: ${(error as Error).message}\n`));
-    process.exit(1);
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    const wrapped = error instanceof CommandExecutionError
+      ? error
+      : new CommandExecutionError('Reindex failed', { cause: normalizedError });
+    logger.error('Reindex failed', normalizedError);
+    handleCommandError('oracle:reindex', wrapped, spinner);
   }
 }
 
@@ -239,11 +260,14 @@ export async function searchOracleCommand(
       throw new Error('ORACLE service is not running. Start it with: brandos oracle start');
     }
 
-    // Get brand from options or config
-    const brand = options.brand || 'default';
-    const topK = options.topK ? parseInt(options.topK) : 5;
+    // Validate inputs
+    const sanitizedQuery = sanitizeQuery(query);
+    const brand = sanitizeBrandName(options.brand ?? 'default');
+    const topK = options.topK !== undefined
+      ? sanitizePositiveInteger(options.topK)
+      : 5;
 
-    const results = await client.search(brand, query, {
+    const results = await client.search(brand, sanitizedQuery, {
       topK,
       useReranking: !options.noRerank
     });
@@ -278,10 +302,12 @@ export async function searchOracleCommand(
     }
 
   } catch (error) {
-    spinner.fail(chalk.red('Search failed'));
-    logger.error('Search failed', error);
-    console.error(chalk.red(`\nError: ${(error as Error).message}\n`));
-    process.exit(1);
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    const wrapped = error instanceof CommandExecutionError
+      ? error
+      : new CommandExecutionError('Search failed', { cause: normalizedError });
+    logger.error('Search failed', normalizedError);
+    handleCommandError('oracle:search', wrapped, spinner);
   }
 }
 
@@ -298,7 +324,8 @@ export async function statsOracleCommand(options: { brand: string }): Promise<vo
       throw new Error('ORACLE service is not running. Start it with: brandos oracle start');
     }
 
-    const stats = await client.getStats(options.brand);
+    const brand = sanitizeBrandName(options.brand);
+    const stats = await client.getStats(brand);
 
     spinner.succeed(chalk.green('Statistics loaded'));
 

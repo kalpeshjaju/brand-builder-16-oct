@@ -69,7 +69,16 @@ export async function auditCommand(options: AuditCommandOptions): Promise<void> 
         }
       }
     } catch (error) {
-      // No evolution outputs available
+      const err = error as NodeJS.ErrnoException;
+      if (err?.code === 'ENOENT') {
+        logger.info('No evolution outputs found', { brand: loaded.brandName, evolutionDir });
+      } else {
+        logger.warn('Failed to load evolution outputs', {
+          brand: loaded.brandName,
+          evolutionDir,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
 
     const validationReport = await validationEngine.validate(

@@ -4,7 +4,7 @@
  * Part of the Analysis Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Performance Predictor result structure
@@ -23,7 +23,7 @@ interface PerformancePredictorResult {
  * Predicts brand performance metrics
  */
 export class PerformancePredictorAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Performance Predictor',
       version: '1.0.0',

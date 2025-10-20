@@ -4,7 +4,7 @@
  * Part of the Strategy Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Voice Tone analysis result
@@ -23,7 +23,7 @@ interface VoiceToneResult {
  * Defines brand voice and tone guidelines
  */
 export class VoiceToneAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Voice Tone',
       version: '1.0.0',

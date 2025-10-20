@@ -135,4 +135,39 @@ describe('Strategy Loader', () => {
     expect(loaded.strategy.keyMessages?.[0]).toContain('AI stylist');
     expect(loaded.metadata.parseMethod).toBe('direct');
   });
+
+  it('parses markdown files with embedded JSON strategies', async () => {
+    const filePath = join(tempDir, 'indus-bakery.md');
+    const strategy = buildStrategy({
+      purpose: 'Celebrate India’s heritage grains through modern baking.',
+      mission: 'Deliver wholesome artisan breads to every household.',
+      positioning: 'India’s trusted heritage grain bakery for nutritious indulgence.',
+    });
+    const markdown = `# Indus Bakery Brand Strategy
+
+Some introductory narrative about the brand and its differentiated approach.
+
+\`\`\`json
+{
+  "brandStrategy": ${JSON.stringify(strategy, null, 2)}
+}
+\`\`\`
+`;
+
+    await writeFile(filePath, markdown, 'utf-8');
+
+    const loaded = await loadStrategyFromFile(filePath);
+
+    expect(loaded.brandName).toBe('Indus Bakery');
+    expect(loaded.strategy.positioning).toMatch(/heritage grain bakery/i);
+    expect(['json-fence', 'object-match']).toContain(loaded.metadata.parseMethod);
+    expect(loaded.rawContent).toContain('brandStrategy');
+  });
+
+  it('throws when strategy payload is missing required data', async () => {
+    const filePath = join(tempDir, 'invalid.json');
+    await writeFile(filePath, JSON.stringify({ brandName: 'MissingStrategy' }), 'utf-8');
+
+    await expect(loadStrategyFromFile(filePath)).rejects.toThrow(/missing required data/i);
+  });
 });

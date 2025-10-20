@@ -4,7 +4,7 @@
  * Part of the Analysis Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Benchmark Comparator result structure
@@ -23,7 +23,7 @@ interface BenchmarkComparatorResult {
  * Compares against industry benchmarks
  */
 export class BenchmarkComparatorAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Benchmark Comparator',
       version: '1.0.0',

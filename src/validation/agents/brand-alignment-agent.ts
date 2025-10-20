@@ -4,7 +4,7 @@
  * Part of the Validation Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Brand Alignment analysis result
@@ -23,7 +23,7 @@ interface BrandAlignmentResult {
  * Validates brand alignment
  */
 export class BrandAlignmentAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Brand Alignment',
       version: '1.0.0',

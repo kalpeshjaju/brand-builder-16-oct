@@ -4,7 +4,7 @@
  * Part of the Generation Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Collateral Designer result structure
@@ -23,7 +23,7 @@ interface CollateralDesignerResult {
  * Designs marketing collateral
  */
 export class CollateralDesignerAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Collateral Designer',
       version: '1.0.0',

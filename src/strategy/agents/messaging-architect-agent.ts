@@ -4,7 +4,7 @@
  * Part of the Strategy Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Messaging Architect analysis result
@@ -23,7 +23,7 @@ interface MessagingArchitectResult {
  * Develops messaging architecture and hierarchy
  */
 export class MessagingArchitectAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Messaging Architect',
       version: '1.0.0',

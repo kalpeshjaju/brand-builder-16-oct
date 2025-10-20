@@ -4,7 +4,10 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
  * Gap finding structure
@@ -38,7 +41,7 @@ interface GapAnalysis {
  * Finds gaps between where brands are and where they want to be
  */
 export class GapAnalyzerAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Gap Analyzer',
       version: '1.0.0',
@@ -91,24 +94,40 @@ export class GapAnalyzerAgent extends BaseAgent {
    * Extract brand data for analysis
    */
   private async extractBrandData(input: AgentInput): Promise<any> {
+    const rawData = isRecord(input.data) ? input.data : {};
+
+    const currentPositioning = rawData['currentPositioning'];
+    const currentCapabilities = rawData['currentCapabilities'];
+    const currentResources = rawData['currentResources'];
+    const currentPerformance = rawData['currentPerformance'];
+
+    const visionValue = rawData['vision'];
+    const goalsValue = rawData['goals'];
+    const targetPosition = rawData['targetPosition'];
+    const requiredCapabilities = rawData['requiredCapabilities'];
+
+    const competitorsValue = rawData['competitors'];
+    const expectationsValue = rawData['customerExpectations'];
+    const benchmarksValue = rawData['industryBenchmarks'];
+
     return {
       brandName: input.brandName,
       currentState: {
-        positioning: input.data?.currentPositioning || 'Unknown',
-        capabilities: input.data?.currentCapabilities || [],
-        resources: input.data?.currentResources || [],
-        performance: input.data?.currentPerformance || {},
+        positioning: typeof currentPositioning === 'string' ? currentPositioning : 'Unknown',
+        capabilities: Array.isArray(currentCapabilities) ? currentCapabilities.map(String) : [],
+        resources: Array.isArray(currentResources) ? currentResources.map(String) : [],
+        performance: isRecord(currentPerformance) ? currentPerformance : {},
       },
       desiredState: {
-        vision: input.data?.vision || 'Not defined',
-        goals: input.data?.goals || [],
-        targetPosition: input.data?.targetPosition || 'Not defined',
-        requiredCapabilities: input.data?.requiredCapabilities || [],
+        vision: typeof visionValue === 'string' ? visionValue : 'Not defined',
+        goals: Array.isArray(goalsValue) ? goalsValue.map(String) : [],
+        targetPosition: typeof targetPosition === 'string' ? targetPosition : 'Not defined',
+        requiredCapabilities: Array.isArray(requiredCapabilities) ? requiredCapabilities.map(String) : [],
       },
       market: {
-        competitors: input.data?.competitors || [],
-        customerExpectations: input.data?.customerExpectations || [],
-        industryBenchmarks: input.data?.industryBenchmarks || {},
+        competitors: Array.isArray(competitorsValue) ? competitorsValue.map(String) : [],
+        customerExpectations: Array.isArray(expectationsValue) ? expectationsValue.map(String) : [],
+        industryBenchmarks: isRecord(benchmarksValue) ? benchmarksValue : {},
       },
     };
   }

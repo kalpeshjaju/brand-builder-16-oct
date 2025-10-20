@@ -6,30 +6,30 @@
 import type { LLMService } from '../services/llm-service.js';
 import { Logger } from '../utils/logger.js';
 
-/**
- * Agent input structure
- */
-export interface AgentInput {
-  brandName: string;
-  brandUrl?: string;
-  data?: any;
-  context?: Record<string, any>;
-  previousAgentOutputs?: AgentOutput[];
-}
+export type AgentStatus = 'success' | 'partial' | 'failed';
 
-/**
- * Agent output structure
- */
-export interface AgentOutput {
+export interface AgentOutput<Findings = unknown, Metadata extends Record<string, unknown> = Record<string, unknown>> {
   agentName: string;
   agentVersion: string;
-  status: 'success' | 'partial' | 'failed';
+  status: AgentStatus;
   executionTime: number;
-  findings?: any;
+  findings?: Findings;
   recommendations?: string[];
   confidence: number; // 0-10
   errors?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Metadata;
+}
+
+export interface AgentInput<
+  Data = Record<string, unknown>,
+  Context = Record<string, unknown>,
+  PreviousOutput extends AgentOutput = AgentOutput
+> {
+  brandName: string;
+  brandUrl?: string;
+  data?: Data;
+  context?: Context;
+  previousAgentOutputs?: PreviousOutput[];
 }
 
 /**
@@ -47,10 +47,16 @@ export interface AgentConfig {
 /**
  * Base class for all agents
  */
-export abstract class BaseAgent {
+export abstract class BaseAgent<
+  Data = Record<string, unknown>,
+  Context = Record<string, unknown>,
+  Findings = unknown,
+  Metadata extends Record<string, unknown> = Record<string, unknown>,
+  PreviousOutput extends AgentOutput = AgentOutput
+> {
   protected config: AgentConfig;
   protected llmService?: LLMService;
-  private startTime: number = 0;
+  private startTime = 0;
   protected logger: Logger;
 
   constructor(config: AgentConfig, llmService?: LLMService) {
@@ -90,12 +96,14 @@ export abstract class BaseAgent {
   /**
    * Main execution method - must be implemented by each agent
    */
-  abstract analyze(input: AgentInput): Promise<AgentOutput>;
+  abstract analyze(
+    input: AgentInput<Data, Context, PreviousOutput>
+  ): Promise<AgentOutput<Findings, Metadata>>;
 
   /**
    * Execute agent with timing and error handling
    */
-  async execute(input: AgentInput): Promise<AgentOutput> {
+  async execute(input: AgentInput<Data, Context, PreviousOutput>): Promise<AgentOutput<Findings, Metadata>> {
     this.startTime = Date.now();
 
     try {
@@ -117,7 +125,6 @@ export abstract class BaseAgent {
       result.executionTime = Date.now() - this.startTime;
 
       return result;
-
     } catch (error) {
       return this.createErrorOutput(error instanceof Error ? error.message : 'Unknown error');
     }
@@ -126,10 +133,10 @@ export abstract class BaseAgent {
   /**
    * Check if required dependencies are present
    */
-  protected checkDependencies(previousOutputs?: AgentOutput[]): string[] {
+  protected checkDependencies(previousOutputs?: PreviousOutput[]): string[] {
     if (!previousOutputs) return this.dependencies;
 
-    const availableAgents = new Set(previousOutputs.map(o => o.agentName));
+    const availableAgents = new Set(previousOutputs.map(output => output.agentName));
     return this.dependencies.filter(dep => !availableAgents.has(dep));
   }
 
@@ -148,11 +155,12 @@ export abstract class BaseAgent {
    * Create standardized output structure
    */
   protected createOutput(
-    findings: any,
+    findings: Findings,
     recommendations: string[] = [],
     confidence: number = 7.5,
-    status: 'success' | 'partial' | 'failed' = 'success'
-  ): AgentOutput {
+    status: AgentStatus = 'success',
+    metadata?: Metadata
+  ): AgentOutput<Findings, Metadata> {
     return {
       agentName: this.name,
       agentVersion: this.version,
@@ -161,13 +169,14 @@ export abstract class BaseAgent {
       findings,
       recommendations,
       confidence,
+      ...(metadata ? { metadata } : {}),
     };
   }
 
   /**
    * Create error output
    */
-  protected createErrorOutput(error: string): AgentOutput {
+  protected createErrorOutput(error: string): AgentOutput<Findings, Metadata> {
     return {
       agentName: this.name,
       agentVersion: this.version,
@@ -181,7 +190,7 @@ export abstract class BaseAgent {
   /**
    * Calculate confidence score based on findings
    */
-  protected calculateConfidence(findings: any): number {
+  protected calculateConfidence(findings: Findings): number {
     // Default implementation - agents can override
     if (!findings) return 0;
 
@@ -199,7 +208,7 @@ export abstract class BaseAgent {
   /**
    * Assess data completeness (0-2.5 points)
    */
-  protected assessDataCompleteness(_findings: any): number {
+  protected assessDataCompleteness(_findings: Findings): number {
     // Override in specific agents
     return 1.5;
   }
@@ -207,7 +216,7 @@ export abstract class BaseAgent {
   /**
    * Assess data quality (0-2.5 points)
    */
-  protected assessDataQuality(_findings: any): number {
+  protected assessDataQuality(_findings: Findings): number {
     // Override in specific agents
     return 1.5;
   }
@@ -215,7 +224,7 @@ export abstract class BaseAgent {
   /**
    * Assess consistency (0-3 points)
    */
-  protected assessConsistency(_findings: any): number {
+  protected assessConsistency(_findings: Findings): number {
     // Override in specific agents
     return 2;
   }
@@ -223,7 +232,7 @@ export abstract class BaseAgent {
   /**
    * Generate recommendations based on findings
    */
-  protected generateRecommendations(_findings: any): string[] {
+  protected generateRecommendations(_findings: Findings): string[] {
     // Default implementation - agents should override
     return [];
   }
@@ -245,3 +254,5 @@ export abstract class BaseAgent {
     }
   }
 }
+
+export type AgentLLMService = LLMService;

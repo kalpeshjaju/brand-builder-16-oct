@@ -305,8 +305,14 @@ export class LLMService {
    */
   private buildOfflineRegistryResponse(promptId: string, context: PromptRenderContext): string {
     if (promptId === 'brand-strategy-gen') {
-      const brand = (context as any)?.brandName || 'Unknown Brand';
-      const industry = (context as any)?.industry || 'general';
+      const brandValue = context['brandName'];
+      const brand = typeof brandValue === 'string' && brandValue.trim().length > 0
+        ? brandValue
+        : 'Unknown Brand';
+      const industryValue = context['industry'];
+      const industry = typeof industryValue === 'string' && industryValue.trim().length > 0
+        ? industryValue
+        : 'general';
       const strategy = {
         brandStrategy: {
           brandName: brand,

@@ -3,7 +3,10 @@
 import type { Parser, ProcessedContent, ParserConfig } from '../../types/ingestion-types.js';
 import type { FileFormat } from '../../types/context-types.js';
 import mammoth from 'mammoth';
-import * as cheerio from 'cheerio';
+import { load } from 'cheerio';
+import type { Element } from 'domhandler';
+
+type CheerioRoot = ReturnType<typeof load>;
 
 export class DOCXParser implements Parser {
   name = 'DOCXParser';
@@ -37,7 +40,7 @@ export class DOCXParser implements Parser {
       const raw = rawText.value;
 
       // Parse HTML structure with cheerio
-      const $ = cheerio.load(html);
+      const $ = load(html);
 
       // Extract sections
       const sections = this.extractSections($);
@@ -72,7 +75,7 @@ export class DOCXParser implements Parser {
   /**
    * Extract sections based on headings
    */
-  private extractSections($: cheerio.Root): string[] {
+  private extractSections($: CheerioRoot): string[] {
     const sections: string[] = [];
 
     // Find all heading elements
@@ -88,7 +91,7 @@ export class DOCXParser implements Parser {
     }
 
     // Extract content between headings
-    headings.each((_, heading) => {
+    headings.each((_index: number, heading: Element) => {
       const $heading = $(heading);
       const sectionContent: string[] = [$heading.text()];
 
@@ -111,10 +114,10 @@ export class DOCXParser implements Parser {
   /**
    * Extract all headings with their levels
    */
-  private extractHeadings($: cheerio.Root): string[] {
+  private extractHeadings($: CheerioRoot): string[] {
     const headings: string[] = [];
 
-    $('h1, h2, h3, h4, h5, h6').each((_, element) => {
+    $('h1, h2, h3, h4, h5, h6').each((_index: number, element: Element) => {
       const text = $(element).text().trim();
       if (text) {
         headings.push(text);
@@ -127,28 +130,28 @@ export class DOCXParser implements Parser {
   /**
    * Extract tables from HTML
    */
-  private extractTables($: cheerio.Root): Array<{ headers: string[]; rows: string[][]; raw: string }> {
+  private extractTables($: CheerioRoot): Array<{ headers: string[]; rows: string[][]; raw: string }> {
     const tables: Array<{ headers: string[]; rows: string[][]; raw: string }> = [];
 
-    $('table').each((_, table) => {
+    $('table').each((_index: number, table: Element) => {
       const $table = $(table);
 
       // Extract headers
       const headers: string[] = [];
-      $table.find('thead th, tr:first-child th, tr:first-child td').each((_, cell) => {
+      $table.find('thead th, tr:first-child th, tr:first-child td').each((_cellIndex: number, cell: Element) => {
         headers.push($(cell).text().trim());
       });
 
       // Extract rows
       const rows: string[][] = [];
-      $table.find('tbody tr, tr').each((i, row) => {
+      $table.find('tbody tr, tr').each((i: number, row: Element) => {
         // Skip header row if it's the first row and we already extracted headers
         if (i === 0 && headers.length > 0 && !$(row).parent().is('tbody')) {
           return;
         }
 
         const rowData: string[] = [];
-        $(row).find('td, th').each((_, cell) => {
+        $(row).find('td, th').each((_columnIndex: number, cell: Element) => {
           rowData.push($(cell).text().trim());
         });
 

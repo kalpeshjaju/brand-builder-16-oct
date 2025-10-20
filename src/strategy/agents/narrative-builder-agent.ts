@@ -4,7 +4,7 @@
  * Part of the Strategy Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Narrative Builder analysis result
@@ -23,7 +23,7 @@ interface NarrativeBuilderResult {
  * Creates brand narrative and storytelling
  */
 export class NarrativeBuilderAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Narrative Builder',
       version: '1.0.0',

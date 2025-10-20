@@ -63,6 +63,7 @@ export interface BrandConfiguration {
 }
 
 export interface BrandStrategy {
+  brandName?: string;
   purpose?: string;
   mission?: string;
   vision?: string;

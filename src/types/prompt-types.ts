@@ -72,8 +72,10 @@ export interface UsageStats {
   averageDuration?: number;               // Avg execution time (ms)
 }
 
+export type PromptRenderPrimitive = string | number | string[] | Record<string, unknown>;
+
 export interface PromptRenderContext {
-  [key: string]: string | number | string[] | Record<string, any>;
+  [key: string]: PromptRenderPrimitive;
 }
 
 export interface PromptValidationResult {

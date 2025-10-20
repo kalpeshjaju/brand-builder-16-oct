@@ -176,6 +176,18 @@ export const DELIVERABLE_CATEGORIES = {
   ],
 };
 
+export type DeliverableStatus = 'pending' | 'in_progress' | 'completed' | 'blocked';
+
+export interface DeliverableTrackerEntry {
+  status: DeliverableStatus;
+  assignee: string | null;
+  startDate: string | null;
+  completedDate: string | null;
+  notes: string;
+}
+
+export type DeliverableTracker = Record<string, Record<string, DeliverableTrackerEntry>>;
+
 /**
  * Customizes deliverables by replacing {brandName} placeholder
  */
@@ -241,8 +253,8 @@ export function getDeliverablesByPhase(phaseNumber: number): string[] {
 /**
  * Creates deliverable status tracker
  */
-export function createDeliverableTracker(deliverables: Record<string, string[]>) {
-  const tracker: Record<string, Record<string, any>> = {};
+export function createDeliverableTracker(deliverables: Record<string, string[]>): DeliverableTracker {
+  const tracker: DeliverableTracker = {};
 
   Object.entries(deliverables).forEach(([phase, items]) => {
     tracker[phase] = {};

@@ -4,7 +4,7 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Whitespace Finder analysis result
@@ -23,7 +23,7 @@ interface WhitespaceFinderResult {
  * Identifies market opportunities and gaps
  */
 export class WhitespaceFinderAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Whitespace Finder',
       version: '1.0.0',

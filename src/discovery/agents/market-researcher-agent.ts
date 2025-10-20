@@ -4,7 +4,10 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 /**
  * Market segment structure
@@ -57,7 +60,7 @@ interface MarketResearchResult {
  * Provides comprehensive market analysis and insights
  */
 export class MarketResearcherAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Market Researcher',
       version: '1.0.0',
@@ -121,15 +124,25 @@ export class MarketResearcherAgent extends BaseAgent {
    * Extract market data
    */
   private async extractMarketData(input: AgentInput): Promise<any> {
+    const rawData = isRecord(input.data) ? input.data : {};
+    const industryValue = rawData['industry'];
+    const categoryValue = rawData['category'];
+    const geographyValue = rawData['geography'];
+    const marketSizeValue = rawData['marketSize'];
+    const competitorsValue = rawData['competitors'];
+    const customerBaseValue = rawData['customerBase'];
+    const regulationsValue = rawData['regulations'];
+    const economicFactorsValue = rawData['economicFactors'];
+
     return {
-      industry: input.data?.industry || 'Unknown',
-      category: input.data?.category || 'Unknown',
-      geography: input.data?.geography || 'Global',
-      currentMarketSize: input.data?.marketSize || 'Unknown',
-      competitors: input.data?.competitors || [],
-      customerBase: input.data?.customerBase || {},
-      regulations: input.data?.regulations || [],
-      economicFactors: input.data?.economicFactors || {},
+      industry: typeof industryValue === 'string' ? industryValue : 'Unknown',
+      category: typeof categoryValue === 'string' ? categoryValue : 'Unknown',
+      geography: typeof geographyValue === 'string' ? geographyValue : 'Global',
+      currentMarketSize: typeof marketSizeValue === 'string' ? marketSizeValue : 'Unknown',
+      competitors: Array.isArray(competitorsValue) ? competitorsValue.map(String) : [],
+      customerBase: isRecord(customerBaseValue) ? customerBaseValue : {},
+      regulations: Array.isArray(regulationsValue) ? regulationsValue.map(String) : [],
+      economicFactors: isRecord(economicFactorsValue) ? economicFactorsValue : {},
     };
   }
 

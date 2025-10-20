@@ -4,7 +4,7 @@
  * Part of the Analysis Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Competitive Advantage result structure
@@ -23,7 +23,7 @@ interface CompetitiveAdvantageResult {
  * Identifies sustainable competitive advantages
  */
 export class CompetitiveAdvantageAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Competitive Advantage',
       version: '1.0.0',

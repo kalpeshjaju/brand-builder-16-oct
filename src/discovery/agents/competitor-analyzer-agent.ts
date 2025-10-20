@@ -4,11 +4,14 @@
  * Part of the Discovery Module
  */
 
-import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig } from '../../core/base-agent.js';
+import { BaseAgent, type AgentInput, type AgentOutput, type AgentConfig, type AgentLLMService } from '../../core/base-agent.js';
 
 /**
  * Competitor profile structure
  */
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 interface CompetitorProfile {
   name: string;
   type: 'direct' | 'indirect' | 'aspirational' | 'substitute';
@@ -47,7 +50,7 @@ interface CompetitiveAnalysis {
  * Provides deep competitive intelligence and positioning insights
  */
 export class CompetitorAnalyzerAgent extends BaseAgent {
-  constructor(llmService?: any) {
+  constructor(llmService?: AgentLLMService) {
     const config: AgentConfig = {
       name: 'Competitor Analyzer',
       version: '1.0.0',
@@ -110,13 +113,20 @@ export class CompetitorAnalyzerAgent extends BaseAgent {
    * Extract competitor data
    */
   private async extractCompetitorData(input: AgentInput): Promise<any> {
+    const rawData = isRecord(input.data) ? input.data : {};
+    const competitorList = rawData['competitors'];
+    const industryValue = rawData['industry'];
+    const marketDataValue = rawData['marketData'];
+    const feedbackValue = rawData['customerFeedback'];
+    const pricingValue = rawData['pricingData'];
+
     return {
       brandName: input.brandName,
-      competitors: input.data?.competitors || [],
-      industry: input.data?.industry || 'Unknown',
-      marketData: input.data?.marketData || {},
-      customerFeedback: input.data?.customerFeedback || {},
-      pricingData: input.data?.pricingData || {},
+      competitors: Array.isArray(competitorList) ? competitorList.map(String) : [],
+      industry: typeof industryValue === 'string' ? industryValue : 'Unknown',
+      marketData: isRecord(marketDataValue) ? marketDataValue : {},
+      customerFeedback: isRecord(feedbackValue) ? feedbackValue : {},
+      pricingData: isRecord(pricingValue) ? pricingValue : {},
     };
   }
 
