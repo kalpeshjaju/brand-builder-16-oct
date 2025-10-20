@@ -34,20 +34,24 @@ export function registerGracefulShutdownHandlers(): void {
   for (const signal of signals) {
     process.once(signal, async () => {
       await executeCleanup(signal);
-      process.exit(0);
+      if (process.exitCode === undefined) {
+        process.exitCode = 0;
+      }
     });
   }
 
   process.once('uncaughtException', async (error: Error) => {
     logger.error('Uncaught exception', error);
     await executeCleanup('SIGTERM');
-    process.exit(1);
+    process.exitCode = 1;
+    throw error;
   });
 
   process.once('unhandledRejection', async (reason: unknown) => {
     const error = reason instanceof Error ? reason : new Error(String(reason));
     logger.error('Unhandled rejection', error);
     await executeCleanup('SIGTERM');
-    process.exit(1);
+    process.exitCode = 1;
+    throw error;
   });
 }

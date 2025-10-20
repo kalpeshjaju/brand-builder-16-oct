@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import pRetry, { AbortError } from 'p-retry';
+import pRetry, { AbortError, type FailedAttemptError } from 'p-retry';
 import type { Ora } from 'ora';
 import { logger } from '../../utils/logger.js';
 import { RETRY_POLICY } from '../../config/constants.js';
@@ -31,7 +31,8 @@ export class NonRetryableError extends CommandExecutionError {
 export async function runWithRetry<T>(
   operationName: string,
   operation: () => Promise<T>,
-  retryOptions: CommandRetryOptions = {}
+  retryOptions: CommandRetryOptions = {},
+  onFailedAttempt?: (error: FailedAttemptError<T>) => void
 ): Promise<T> {
   const {
     retries = RETRY_POLICY.MAX_ATTEMPTS - 1,
@@ -40,31 +41,54 @@ export async function runWithRetry<T>(
     maxTimeout = RETRY_POLICY.MAX_DELAY_MS,
   } = retryOptions;
 
-  return pRetry(async () => {
-    try {
-      return await operation();
-    } catch (error) {
-      if (error instanceof NonRetryableError) {
-        throw new AbortError(error.message);
+  let lastError: Error | undefined;
+  let lastAttempt = 0;
+
+  try {
+    return await pRetry(async () => {
+      try {
+        return await operation();
+      } catch (error) {
+        if (error instanceof NonRetryableError) {
+          throw new AbortError(error.message);
+        }
+        if (error instanceof Error) {
+          throw error;
+        }
+        throw new Error(String(error));
       }
-      if (error instanceof Error) {
-        throw error;
-      }
-      throw new Error(String(error));
+    }, {
+      retries,
+      factor,
+      minTimeout,
+      maxTimeout,
+      onFailedAttempt: (error) => {
+        const message = error.message ?? 'Unknown error';
+        lastAttempt = error.attemptNumber;
+        lastError = error as Error;
+        const total = error.retriesLeft + error.attemptNumber;
+        logger.warn(`Operation '${operationName}' failed (attempt ${error.attemptNumber}/${total})`, {
+          error: message,
+        });
+        onFailedAttempt?.(error);
+      },
+    });
+  } catch (error) {
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+
+    // If it's an AbortError (from NonRetryableError), throw it directly
+    if (normalizedError instanceof AbortError) {
+      throw normalizedError;
     }
-  }, {
-    retries,
-    factor,
-    minTimeout,
-    maxTimeout,
-    onFailedAttempt: (error) => {
-      const message = error.message ?? 'Unknown error';
-      const attemptInfo = `${error.attemptNumber}/${error.retriesLeft + error.attemptNumber}`;
-      logger.warn(`Operation '${operationName}' failed (attempt ${attemptInfo})`, {
-        error: message,
-      });
-    },
-  });
+
+    const attempts = lastAttempt > 0 ? lastAttempt : retries + 1;
+    const wrapped = new CommandExecutionError(
+      `Operation '${operationName}' failed after ${attempts} attempt${attempts === 1 ? '' : 's'}`,
+      { cause: lastError ?? normalizedError }
+    );
+
+    throw wrapped;
+  }
 }
 
 export function handleCommandError(commandName: string, error: unknown, spinner?: Ora): void {

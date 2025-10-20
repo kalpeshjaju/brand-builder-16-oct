@@ -84,7 +84,7 @@ export class ContradictionDetectorAgent extends BaseAgent {
 
     } catch (error) {
       this.log(`Analysis failed: ${error}`, 'error');
-      return this.createErrorOutput(error instanceof Error ? error.message : 'Analysis failed');
+      return this.createErrorOutput(error, { phase: 'analyze' });
     }
   }
 

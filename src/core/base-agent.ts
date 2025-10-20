@@ -44,6 +44,11 @@ export interface AgentConfig {
   dependencies?: string[]; // Other agent names this depends on
 }
 
+interface AgentErrorContext {
+  phase?: string;
+  hint?: string;
+}
+
 /**
  * Base class for all agents
  */
@@ -126,7 +131,7 @@ export abstract class BaseAgent<
 
       return result;
     } catch (error) {
-      return this.createErrorOutput(error instanceof Error ? error.message : 'Unknown error');
+      return this.createErrorOutput(error, { phase: 'execute' });
     }
   }
 
@@ -176,14 +181,21 @@ export abstract class BaseAgent<
   /**
    * Create error output
    */
-  protected createErrorOutput(error: string): AgentOutput<Findings, Metadata> {
+  protected createErrorOutput(
+    error: string | unknown,
+    context: AgentErrorContext = {}
+  ): AgentOutput<Findings, Metadata> {
+    const message = typeof error === 'string'
+      ? error
+      : this.formatErrorDetails(error, context);
+
     return {
       agentName: this.name,
       agentVersion: this.version,
       status: 'failed',
       executionTime: Date.now() - this.startTime,
       confidence: 0,
-      errors: [error],
+      errors: [message],
     };
   }
 
@@ -252,6 +264,30 @@ export abstract class BaseAgent<
       default:
         this.logger.info(message);
     }
+  }
+
+  private formatErrorDetails(error: unknown, context: AgentErrorContext): string {
+    const normalizedError = error instanceof Error ? error : new Error(String(error));
+    const baseDetails: Record<string, unknown> = {
+      name: normalizedError.name || 'Error',
+      message: normalizedError.message || 'Unknown error',
+      phase: context.phase ?? 'analysis',
+      agent: this.name,
+    };
+
+    if (context.hint) {
+      baseDetails.hint = context.hint;
+    }
+
+    const maybeCause = (normalizedError as Error & { cause?: unknown }).cause;
+    if (maybeCause instanceof Error) {
+      baseDetails.cause = maybeCause.message;
+      baseDetails.causeName = maybeCause.name;
+    } else if (maybeCause !== undefined) {
+      baseDetails.cause = maybeCause;
+    }
+
+    return JSON.stringify(baseDetails);
   }
 }
 

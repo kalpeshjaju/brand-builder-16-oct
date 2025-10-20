@@ -7,6 +7,7 @@ import { load } from 'cheerio';
 import type { Element } from 'domhandler';
 
 type CheerioRoot = ReturnType<typeof load>;
+type CheerioElement = Parameters<CheerioRoot['each']>[1];
 
 export class DOCXParser implements Parser {
   name = 'DOCXParser';
@@ -91,7 +92,7 @@ export class DOCXParser implements Parser {
     }
 
     // Extract content between headings
-    headings.each((_index: number, heading: Element) => {
+    headings.each((_index: number, heading: CheerioElement) => {
       const $heading = $(heading);
       const sectionContent: string[] = [$heading.text()];
 
@@ -117,7 +118,7 @@ export class DOCXParser implements Parser {
   private extractHeadings($: CheerioRoot): string[] {
     const headings: string[] = [];
 
-    $('h1, h2, h3, h4, h5, h6').each((_index: number, element: Element) => {
+    $('h1, h2, h3, h4, h5, h6').each((_index: number, element: CheerioElement) => {
       const text = $(element).text().trim();
       if (text) {
         headings.push(text);
@@ -133,25 +134,25 @@ export class DOCXParser implements Parser {
   private extractTables($: CheerioRoot): Array<{ headers: string[]; rows: string[][]; raw: string }> {
     const tables: Array<{ headers: string[]; rows: string[][]; raw: string }> = [];
 
-    $('table').each((_index: number, table: Element) => {
+    $('table').each((_index: number, table: CheerioElement) => {
       const $table = $(table);
 
       // Extract headers
       const headers: string[] = [];
-      $table.find('thead th, tr:first-child th, tr:first-child td').each((_cellIndex: number, cell: Element) => {
+      $table.find('thead th, tr:first-child th, tr:first-child td').each((_cellIndex: number, cell: CheerioElement) => {
         headers.push($(cell).text().trim());
       });
 
       // Extract rows
       const rows: string[][] = [];
-      $table.find('tbody tr, tr').each((i: number, row: Element) => {
+      $table.find('tbody tr, tr').each((i: number, row: CheerioElement) => {
         // Skip header row if it's the first row and we already extracted headers
         if (i === 0 && headers.length > 0 && !$(row).parent().is('tbody')) {
           return;
         }
 
         const rowData: string[] = [];
-        $(row).find('td, th').each((_columnIndex: number, cell: Element) => {
+        $(row).find('td, th').each((_columnIndex: number, cell: CheerioElement) => {
           rowData.push($(cell).text().trim());
         });
 
