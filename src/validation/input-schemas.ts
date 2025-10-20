@@ -2,20 +2,20 @@ import { z } from 'zod';
 import { CONTENT_REQUIREMENTS } from '../config/constants.js';
 
 export const brandNameSchema = z
-  .string({ required_error: 'Brand name is required' })
+  .string({ message: 'Brand name is required' })
   .trim()
   .min(Math.max(2, CONTENT_REQUIREMENTS.MIN_LENGTH), 'Brand name must be at least 2 characters long')
   .max(100, 'Brand name must be less than 100 characters')
   .regex(/^[\w\s&\-\.,]+$/u, 'Brand name contains invalid characters');
 
 export const cliQuerySchema = z
-  .string({ required_error: 'Query is required' })
+  .string({ message: 'Query is required' })
   .trim()
   .min(CONTENT_REQUIREMENTS.MIN_LENGTH, 'Query cannot be empty')
   .max(4_000, 'Query is too long');
 
 export const filePathSchema = z
-  .string({ required_error: 'File path is required' })
+  .string({ message: 'File path is required' })
   .trim()
   .max(1_000, 'File path is too long')
   .refine(value => !value.includes('\0'), 'Invalid file path');

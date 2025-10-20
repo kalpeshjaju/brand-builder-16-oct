@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import pRetry, { AbortError } from 'p-retry';
+import pRetry, { AbortError, type RetryContext } from 'p-retry';
 import type { Ora } from 'ora';
 import { logger } from '../../utils/logger.js';
 import { RETRY_POLICY } from '../../config/constants.js';
@@ -9,6 +9,25 @@ export interface CommandRetryOptions {
   factor?: number;
   minTimeout?: number;
   maxTimeout?: number;
+}
+
+type RetryEvent = RetryContext | (Error & { attemptNumber: number; retriesLeft: number });
+
+function normalizeRetryEvent(event: RetryEvent): {
+  message: string;
+  attemptNumber: number;
+  retriesLeft: number;
+} {
+  const attemptNumber = 'attemptNumber' in event ? event.attemptNumber : 0;
+  const retriesLeft = 'retriesLeft' in event ? event.retriesLeft : 0;
+  const rawError = 'error' in event ? event.error : event;
+  const message = rawError instanceof Error ? rawError.message : String(rawError);
+
+  return {
+    message,
+    attemptNumber,
+    retriesLeft,
+  };
 }
 
 export class CommandExecutionError extends Error {
@@ -52,14 +71,16 @@ export async function runWithRetry<T>(
       }
       throw new Error(String(error));
     }
-  }, {
+  },
+  {
     retries,
     factor,
     minTimeout,
     maxTimeout,
-    onFailedAttempt: (error) => {
-      const message = error.message ?? 'Unknown error';
-      const attemptInfo = `${error.attemptNumber}/${error.retriesLeft + error.attemptNumber}`;
+    onFailedAttempt: (event: RetryEvent) => {
+      const { message, attemptNumber, retriesLeft } = normalizeRetryEvent(event);
+      const totalAttempts = attemptNumber + retriesLeft;
+      const attemptInfo = totalAttempts > 0 ? `${attemptNumber}/${totalAttempts}` : `${attemptNumber}`;
       logger.warn(`Operation '${operationName}' failed (attempt ${attemptInfo})`, {
         error: message,
       });
