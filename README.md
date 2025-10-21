@@ -78,10 +78,10 @@ npm run dev init -- --brand "YourBrand" --industry "Technology" --category "SaaS
 - ✅ **Brand Analysis** - Deep contradiction detection
 - ✅ **Pattern Recognition** - Language gaps, inflection points
 - ✅ **Workspace Management** - Multi-brand support
+- ✅ **Phase 3-5 Automation** - Config-mode tests covering creative direction, validation, and build-out flows
 - ✅ **Test Suite** - 76 tests, 100% pass rate
 
 ### Planned (Future)
-- ⏳ Phases 3-5 end-to-end testing
 - ⏳ Complete strategy generation
 - ⏳ Quality validation system
 - ⏳ Document ingestion
@@ -188,6 +188,11 @@ brand-builder-16-oct/
 - Inflection point detection
 - Pattern presentation
 
+### ✅ Evolution Workshop (Phases 3-5)
+- Creative direction capture via config or interactive prompts
+- Validation engine scored with automated regression tests
+- Build-out generator verified through deterministic integration test
+
 ### ✅ Workspace Management
 - Multi-brand support
 - Directory creation
@@ -202,7 +207,6 @@ brand-builder-16-oct/
 
 ## Known Limitations
 
-- Phases 3-5 require end-to-end testing
 - Interactive prompts only work in terminal (not in background)
 - ESLint configuration not setup
 

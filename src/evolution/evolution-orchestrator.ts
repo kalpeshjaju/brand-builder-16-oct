@@ -24,6 +24,7 @@ import type {
 import type { CreativeDirectionConfig } from '../types/evolution-config-types.js';
 
 const logger = new Logger('EvolutionOrchestrator');
+const PHASE_ORDER: EvolutionPhase[] = ['research', 'patterns', 'direction', 'validation', 'buildout'];
 
 export interface EvolutionConfig {
   brandName: string;
@@ -68,39 +69,7 @@ export class EvolutionOrchestrator {
       await fs.mkdir(this.outputDir, { recursive: true });
 
       // Phase 1: Research Blitz
-      if (!this.isPhaseComplete('research')) {
-        await this.runPhase1();
-      } else {
-        console.log(chalk.green('✓ Phase 1: Research Blitz (already complete)\n'));
-      }
-
-      // Phase 2: Pattern Presentation
-      if (!this.isPhaseComplete('patterns')) {
-        await this.runPhase2();
-      } else {
-        console.log(chalk.green('✓ Phase 2: Pattern Presentation (already complete)\n'));
-      }
-
-      // Phase 3: Creative Direction
-      if (!this.isPhaseComplete('direction')) {
-        await this.runPhase3();
-      } else {
-        console.log(chalk.green('✓ Phase 3: Creative Direction (already complete)\n'));
-      }
-
-      // Phase 4: Validation
-      if (!this.isPhaseComplete('validation')) {
-        await this.runPhase4();
-      } else {
-        console.log(chalk.green('✓ Phase 4: Validation (already complete)\n'));
-      }
-
-      // Phase 5: Build-Out
-      if (!this.isPhaseComplete('buildout')) {
-        await this.runPhase5();
-      } else {
-        console.log(chalk.green('✓ Phase 5: Build-Out (already complete)\n'));
-      }
+      await this.runUntilPhase('buildout');
 
       const buildout = this.state.outputs.buildout!;
 
@@ -122,6 +91,91 @@ export class EvolutionOrchestrator {
       const message = `Evolution workflow failed for ${this.config.brandName}`;
       throw new CommandExecutionError(message, { cause: error });
     }
+  }
+
+  /**
+   * Run sequentially until the requested phase (inclusive)
+   * Automatically skips completed phases unless forcing the target
+   */
+  async runUntilPhase(targetPhase: EvolutionPhase, options?: { forceTarget?: boolean }): Promise<void> {
+    const targetIndex = PHASE_ORDER.indexOf(targetPhase);
+    if (targetIndex === -1) {
+      throw new CommandExecutionError(`Unknown evolution phase: ${targetPhase}`);
+    }
+
+    for (let index = 0; index <= targetIndex; index++) {
+      const phase = PHASE_ORDER[index];
+      const shouldForce = options?.forceTarget && phase === targetPhase;
+      if (!this.isPhaseComplete(phase) || shouldForce) {
+        await this.executePhase(phase);
+      } else {
+        this.logPhaseAlreadyComplete(phase);
+      }
+    }
+
+    await this.saveState();
+  }
+
+  /**
+   * Run a specific sequence of phases in order (used by CLI subcommands)
+   */
+  async runPhaseSequence(phases: EvolutionPhase[], options?: { forceLast?: boolean }): Promise<void> {
+    if (phases.length === 0) {
+      return;
+    }
+
+    const orderedUniquePhases = PHASE_ORDER.filter(phase => phases.includes(phase));
+    const lastPhase = orderedUniquePhases[orderedUniquePhases.length - 1];
+
+    for (const phase of orderedUniquePhases) {
+      const shouldForce = options?.forceLast && phase === lastPhase;
+      if (!this.isPhaseComplete(phase) || shouldForce) {
+        await this.executePhase(phase);
+      } else {
+        this.logPhaseAlreadyComplete(phase);
+      }
+    }
+
+    await this.saveState();
+  }
+
+  /**
+   * Execute a single phase by delegating to the underlying implementation
+   */
+  private async executePhase(phase: EvolutionPhase): Promise<void> {
+    switch (phase) {
+      case 'research':
+        await this.runPhase1();
+        break;
+      case 'patterns':
+        await this.runPhase2();
+        break;
+      case 'direction':
+        await this.runPhase3();
+        break;
+      case 'validation':
+        await this.runPhase4();
+        break;
+      case 'buildout':
+        await this.runPhase5();
+        break;
+      default:
+        throw new CommandExecutionError(`Unsupported evolution phase requested: ${phase}`);
+    }
+  }
+
+  /**
+   * Log that a phase was already complete (for CLI UX)
+   */
+  private logPhaseAlreadyComplete(phase: EvolutionPhase): void {
+    const phaseName =
+      phase === 'research' ? 'Phase 1: Research Blitz' :
+      phase === 'patterns' ? 'Phase 2: Pattern Presentation' :
+      phase === 'direction' ? 'Phase 3: Creative Direction' :
+      phase === 'validation' ? 'Phase 4: Validation' :
+      'Phase 5: Build-Out';
+
+    console.log(chalk.green(`✓ ${phaseName} (already complete)\n`));
   }
 
   /**
