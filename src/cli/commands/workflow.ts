@@ -204,6 +204,28 @@ async function runWorkflow(options: {
       await FileSystemUtils.writeJSON(path.join(outDir, '10e-cross-verify.json'), g5.data);
     }
 
+    // Documentation catalog agents (11-15)
+    const d1 = results['docs.product-catalog'];
+    if (d1?.success && d1.data) {
+      await FileSystemUtils.writeJSON(path.join(outDir, '11-product-catalog.json'), d1.data);
+    }
+    const d2 = results['docs.pricing-guide'];
+    if (d2?.success && d2.data) {
+      await FileSystemUtils.writeJSON(path.join(outDir, '12-pricing-guide.json'), d2.data);
+    }
+    const d3 = results['docs.corporate-catalog'];
+    if (d3?.success && d3.data) {
+      await FileSystemUtils.writeJSON(path.join(outDir, '13-corporate-catalog.json'), d3.data);
+    }
+    const d4 = results['docs.training-guide'];
+    if (d4?.success && d4.data) {
+      await FileSystemUtils.writeJSON(path.join(outDir, '14-training-guide.json'), d4.data);
+    }
+    const d5 = results['docs.asset-map'];
+    if (d5?.success && d5.data) {
+      await FileSystemUtils.writeJSON(path.join(outDir, '15-asset-map.json'), d5.data);
+    }
+
     // If require-pass, enforce guardian gates
     if ((options as any)['requirePass']) {
       const guardianPath = path.join(outDir, '10-guardian-gates.json');
