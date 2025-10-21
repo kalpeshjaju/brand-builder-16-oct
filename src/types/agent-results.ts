@@ -1,5 +1,4 @@
 import type {
-  ResearchBlitzOutput,
   PatternPresentationOutput,
   CreativeDirectionOutput,
   ValidationOutput,
@@ -24,7 +23,7 @@ export type AgentName =
   | 'guardian.gates'
   | 'guardian.source-quality'
   | 'guardian.recency'
-  | 'guardian.readiness';
+  | 'guardian.readiness'
   | 'oracle.context';
 
 export type AgentResultMap = {

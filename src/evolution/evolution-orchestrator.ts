@@ -3,12 +3,14 @@
  *
  * Coordinates the 5-phase Brand Evolution Workshop workflow
  * Manages state, persistence, and phase transitions
+import type ora from 'ora';
  */
 
 import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import ora from 'ora';
+import type { Ora } from 'ora';
 import { CommandExecutionError } from '../cli/utils/error-handler.js';
 import { Logger } from '../utils/logger.js';
 import { ResearchBlitz, type ResearchBlitzConfig } from './research-blitz.js';
@@ -149,7 +151,7 @@ export class EvolutionOrchestrator {
   /**
    * Execute a single phase by delegating to the underlying implementation
    */
-  private async executePhase(phase: EvolutionPhase, spinner?: ora.Ora): Promise<void> {
+  private async executePhase(phase: EvolutionPhase, spinner?: Ora): Promise<void> {
     switch (phase) {
       case 'research':
         await this.runPhase1(spinner);
@@ -188,7 +190,7 @@ export class EvolutionOrchestrator {
   /**
    * Phase 1: Research Blitz
    */
-  private async runPhase1(spinner?: ora.Ora): Promise<void> {
+  private async runPhase1(spinner?: Ora): Promise<void> {
     const phaseSpinner = spinner || ora('Conducting brand audit...').start();
     phaseSpinner.text = 'Phase 1: Research Blitz - Starting...';
 
@@ -230,7 +232,7 @@ export class EvolutionOrchestrator {
   /**
    * Phase 2: Pattern Presentation
    */
-  private async runPhase2(spinner?: ora.Ora): Promise<void> {
+  private async runPhase2(spinner?: Ora): Promise<void> {
     const phaseSpinner = spinner || ora('Analyzing patterns...').start();
     phaseSpinner.text = 'Phase 2: Pattern Presentation - Analyzing patterns...';
 
@@ -304,7 +306,7 @@ export class EvolutionOrchestrator {
   /**
    * Phase 4: Validation
    */
-  private async runPhase4(spinner?: ora.Ora): Promise<void> {
+  private async runPhase4(spinner?: Ora): Promise<void> {
     const phaseSpinner = spinner || ora('Validating creative direction...').start();
     phaseSpinner.text = 'Phase 4: Validation - Validating creative direction...';
 
@@ -352,7 +354,7 @@ export class EvolutionOrchestrator {
   /**
    * Phase 5: Build-Out
    */
-  private async runPhase5(spinner?: ora.Ora): Promise<void> {
+  private async runPhase5(spinner?: Ora): Promise<void> {
     const phaseSpinner = spinner || ora('Generating strategy...').start();
     phaseSpinner.text = 'Phase 5: Build-Out - Generating strategy...';
 

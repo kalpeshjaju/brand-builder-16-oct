@@ -24,8 +24,8 @@ export interface IAgentResult<TData = unknown> {
 export interface AgentMetadata {
   description: string;
   version?: string; // semantic version of the agent
-  inputs?: string[]; // names of required previous-agent outputs
-  outputs?: string[]; // keys produced in result.data
+  inputs?: readonly string[]; // names of required previous-agent outputs
+  outputs?: readonly string[]; // keys produced in result.data
 }
 
 export interface IAgent {

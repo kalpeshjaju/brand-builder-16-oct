@@ -1,5 +1,12 @@
 // Init command - Initialize a brand workspace
 
+interface InitCommandOptions {
+  brand: string;
+  industry?: string;
+  category?: string;
+  output?: string;
+}
+
 import path from 'path';
 import { WorkspaceManager } from '../../context/workspace-manager.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';

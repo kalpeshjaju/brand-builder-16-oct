@@ -1,6 +1,5 @@
 import { Command } from 'commander';
 import { FileSystemUtils } from '../../utils/file-system.js';
-import path from 'path';
 
 async function setupHandler() {
   // Create .env.example and .env if missing

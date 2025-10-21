@@ -59,7 +59,6 @@ async function loadExistingState(
 async function resolveBrandUrl(
   brand: string,
   providedUrl: string | undefined,
-  outputDir: string | undefined,
   existingState: EvolutionWorkflowState | null
 ): Promise<string> {
   if (providedUrl) {

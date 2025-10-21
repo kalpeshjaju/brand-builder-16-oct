@@ -1,7 +1,7 @@
 // Ingestion Service - Combines parsers + ORACLE for document processing
 
 import { getParser } from './parsers/index.js';
-import { createOracleClient, type OracleClient } from '../oracle/index.js';
+import { OracleClient } from '../oracle/index.js';
 import type { ProcessedContent, IngestionResult } from '../types/ingestion-types.js';
 import type { FileFormat } from '../types/context-types.js';
 import type { BrandConfiguration } from '../types/brand-types.js';
@@ -32,7 +32,7 @@ export class IngestionService {
   private researchDB: ResearchDatabase | null;
 
   constructor(config: IngestionServiceConfig = {}) {
-    this.oracle = config.oracleClient || createOracleClient();
+    this.oracle = config.oracleClient || new OracleClient({ endpoint: process.env.ORACLE_ENDPOINT || 'http://localhost:8080' });
     this.researchDB = config.brandConfig ? new ResearchDatabase(config.brandConfig) : null;
   }
 
