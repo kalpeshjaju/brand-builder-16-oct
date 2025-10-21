@@ -48,6 +48,11 @@ import {
 } from './commands/guardian.js';
 import { metricsCommand } from './commands/metrics.js';
 import { healthCommand } from './commands/health.js';
+import { workflowCommand } from './commands/workflow.js';
+import { reportCommand } from './commands/report.js';
+import { setupCommand } from './commands/setup.js';
+import { useCommand } from './commands/use.js';
+import { packageCommand } from './commands/package.js';
 
 // Load environment variables
 config();
@@ -136,6 +141,17 @@ program.addCommand(ingestCommand);
 
 // Evolve command (Brand Evolution Workshop)
 program.addCommand(evolveCommand);
+
+// Workflow (agentic orchestrator)
+program.addCommand(workflowCommand);
+
+// Report
+program.addCommand(reportCommand);
+
+// Setup & Use
+program.addCommand(setupCommand);
+program.addCommand(useCommand);
+program.addCommand(packageCommand);
 
 // Search command
 program.addCommand(searchCommand);

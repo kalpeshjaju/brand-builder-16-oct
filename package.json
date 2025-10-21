@@ -19,6 +19,7 @@
     "postinstall": "pip3 install -r src/oracle/requirements.txt",
     "dev": "tsx src/cli/index.ts",
     "build": "tsc",
+    "postbuild": "tsx scripts/generate-agents-manifest.ts",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
@@ -36,7 +37,8 @@
     "generate": "tsx src/cli/index.ts generate",
     "audit": "tsx src/cli/index.ts audit",
     "context": "tsx src/cli/index.ts context",
-    "ingest": "tsx src/cli/index.ts ingest"
+    "ingest": "tsx src/cli/index.ts ingest",
+    "demo:flyberry": "BRANDOS_OFFLINE=true tsx src/cli/index.ts workflow run -- --brand Flyberry --url https://flyberry.in --explain --resume && tsx src/cli/index.ts report -- --brand Flyberry"
   },
   "keywords": [
     "brand-intelligence",

@@ -6,12 +6,12 @@ Transform your brand through intelligent research, contradiction detection, and 
 
 ## Production Status
 
-✅ **PRODUCTION-READY** - Validated October 17, 2025
+⚠️ **Partially Ready** — See `PRODUCTION_READY_STATUS.md`
 
-- **76/76 tests passing (100%)**
-- **Zero TypeScript errors**
-- **Real-world tested** with revaaforyou.com
-- **Phases 1-2 fully functional**
+- Phases 1–2 validated end-to-end
+- Zero TypeScript errors
+- Real-world tested with revaaforyou.com
+- Further fixes and validation tracked in `PRODUCTION_READY_STATUS.md`
 
 ---
 
@@ -209,6 +209,11 @@ brand-builder-16-oct/
 - [FINAL_PRODUCTION_STATUS.md](FINAL_PRODUCTION_STATUS.md) - Complete status report
 - [FINAL_STATUS.md](FINAL_STATUS.md) - Feature status
 - [CLI_OUTPUT_GUIDE.md](docs/CLI_OUTPUT_GUIDE.md) - CLI standards
+- [LLM Collaboration Guide](docs/LLM_COLLABORATION_GUIDE.md) - How to add/modify agents safely
+- [Workflow Config](docs/WORKFLOW_CONFIG.md) - Define stages/agents via JSON
+- [Non-Technical Overview](docs/NON_TECHNICAL_OVERVIEW.md) - Plain-English walkthrough
+- [Build & Rate Limits](docs/BUILD_AND_RATE_LIMITS.md) - Build/run steps and rate-limit playbook
+- [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md) - What to build next and how
 
 ---
 
@@ -254,6 +259,7 @@ brand-builder-16-oct/
 
 - Interactive prompts only work in terminal (not in background)
 - ESLint configuration not setup
+- SPA sites may require JS rendering (optional flag planned)
 
 ---
 
@@ -264,7 +270,6 @@ MIT
 ---
 
 **Created**: October 16, 2025
-**Production-Ready**: October 17, 2025
-**Status**: ✅ Phases 1-2 Validated, Ready for Use
+**Status**: ⚠️ Phases 1–2 Validated (see `PRODUCTION_READY_STATUS.md`)
 
-**Confidence**: 95% - Tool works reliably for brand analysis and pattern detection
+**Note**: We are aligning architecture toward a pluggable agent model in-place. A new orchestrator and agent interface will be introduced incrementally without breaking existing flows.

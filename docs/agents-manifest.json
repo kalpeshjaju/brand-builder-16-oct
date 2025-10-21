@@ -1,0 +1,32 @@
+{
+  "agents": [
+    {
+      "name": "evolution.research-blitz",
+      "description": "Phase 1: Fetch and analyze brand + competitors to produce research findings",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "brandAudit",
+        "competitors",
+        "marketGaps",
+        "contradictions",
+        "customerLanguage",
+        "culturalContext"
+      ]
+    },
+    {
+      "name": "evolution.pattern-presentation",
+      "description": "Phase 2: Transform research into patterns (contradictions, white space, language gaps, positioning map, inflection points)",
+      "version": "1.0.0",
+      "inputs": ["evolution.research-blitz"],
+      "outputs": [
+        "contradictions",
+        "whiteSpace",
+        "languageGaps",
+        "positioningMap",
+        "inflectionPoints"
+      ]
+    }
+  ]
+}
+
