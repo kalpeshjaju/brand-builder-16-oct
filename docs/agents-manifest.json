@@ -1,0 +1,255 @@
+{
+  "agents": [
+    {
+      "name": "evolution.research-blitz",
+      "description": "Phase 1: Fetch and analyze brand + competitors to produce research findings",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "brandAudit",
+        "competitors",
+        "marketGaps",
+        "contradictions",
+        "customerLanguage",
+        "culturalContext"
+      ]
+    },
+    {
+      "name": "evolution.pattern-presentation",
+      "description": "Phase 2: Transform research into patterns (contradictions, white space, language gaps, positioning map, inflection points)",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.research-blitz"
+      ],
+      "outputs": [
+        "contradictions",
+        "whiteSpace",
+        "languageGaps",
+        "positioningMap",
+        "inflectionPoints"
+      ]
+    },
+    {
+      "name": "evolution.creative-direction",
+      "description": "Phase 3: Capture creative direction (config mode) based on patterns",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.pattern-presentation"
+      ],
+      "outputs": [
+        "primaryDirection",
+        "keyThemes",
+        "creativeLeaps"
+      ]
+    },
+    {
+      "name": "evolution.validation",
+      "description": "Phase 4: Validate creative direction against research evidence",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.research-blitz",
+        "evolution.creative-direction"
+      ],
+      "outputs": [
+        "overallConfidence",
+        "recommendation",
+        "differentiationScore"
+      ]
+    },
+    {
+      "name": "evolution.build-out",
+      "description": "Phase 5: Generate complete brand evolution strategy (build-out)",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.research-blitz",
+        "evolution.creative-direction",
+        "evolution.validation"
+      ],
+      "outputs": [
+        "executiveSummary",
+        "positioningFramework",
+        "messagingArchitecture"
+      ]
+    },
+    {
+      "name": "docs.narrative",
+      "description": "Generate ACT 1–6 narrative package (brand foundation to transformation)",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.pattern-presentation",
+        "evolution.creative-direction",
+        "evolution.build-out"
+      ],
+      "outputs": [
+        "toc",
+        "sections"
+      ]
+    },
+    {
+      "name": "docs.teardown",
+      "description": "Generate brand teardown & SWOT using research + validation artifacts",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.research-blitz",
+        "evolution.validation"
+      ],
+      "outputs": [
+        "strengths",
+        "weaknesses",
+        "opportunities",
+        "threats",
+        "score"
+      ]
+    },
+    {
+      "name": "genesis.research-topics",
+      "description": "Generate customized 77-subtopic research framework (Horizon)",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "phase1",
+        "phase2",
+        "phase3",
+        "phase4"
+      ]
+    },
+    {
+      "name": "genesis.deliverables-bundle",
+      "description": "Generate 64-deliverable framework customized for the brand",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "phase1",
+        "phase2",
+        "phase3",
+        "phase4",
+        "phase5"
+      ]
+    },
+    {
+      "name": "guardian.gates",
+      "description": "Apply quality gates (confidence, contradictions, sources, readiness) to block low-quality outputs",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.research-blitz",
+        "evolution.validation"
+      ],
+      "outputs": [
+        "overall",
+        "gates",
+        "score"
+      ]
+    },
+    {
+      "name": "guardian.source-quality",
+      "description": "Assess source quality by tiering URLs: Tier1 (.gov/.edu), Tier2 (reputable news/research), Tier3 (professional), Tier4 (low)",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.research-blitz"
+      ],
+      "outputs": [
+        "tiers",
+        "tier12Ratio"
+      ]
+    },
+    {
+      "name": "guardian.recency",
+      "description": "Check recency of sources (heuristic year extraction) and compute recent ratio",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.research-blitz"
+      ],
+      "outputs": [
+        "recentRatio"
+      ]
+    },
+    {
+      "name": "guardian.readiness",
+      "description": "Check presence of required sections before packaging (positioning, messaging, roadmap)",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.validation",
+        "evolution.build-out"
+      ],
+      "outputs": [
+        "ready"
+      ]
+    },
+    {
+      "name": "guardian.numeric-variance",
+      "description": "Check numeric variance in success metrics for sanity (flags extreme jumps)",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.build-out"
+      ],
+      "outputs": [
+        "flagged"
+      ]
+    },
+    {
+      "name": "guardian.cross-verify",
+      "description": "Cross-verify support vs contradiction counts from validation evidence",
+      "version": "1.0.0",
+      "inputs": [
+        "evolution.validation"
+      ],
+      "outputs": [
+        "supportRatio"
+      ]
+    },
+    {
+      "name": "docs.product-catalog",
+      "description": "Generate product catalog skeleton (SKUs/specs) for refinement or ingestion merge",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "items"
+      ]
+    },
+    {
+      "name": "docs.pricing-guide",
+      "description": "Generate pricing guide skeleton (categories, sizes, MRP)",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "entries"
+      ]
+    },
+    {
+      "name": "docs.corporate-catalog",
+      "description": "Generate corporate gifting catalog skeleton (entries with use cases)",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "entries"
+      ]
+    },
+    {
+      "name": "docs.training-guide",
+      "description": "Generate staff training guide skeleton (topics/points)",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "topics"
+      ]
+    },
+    {
+      "name": "docs.asset-map",
+      "description": "Generate asset/touchpoint inventory skeleton",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "items"
+      ]
+    },
+    {
+      "name": "oracle.context",
+      "description": "Retrieve semantic context for key queries using ORACLE (when enabled)",
+      "version": "1.0.0",
+      "inputs": [],
+      "outputs": [
+        "items"
+      ]
+    }
+  ]
+}

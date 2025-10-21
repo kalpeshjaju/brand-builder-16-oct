@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash } from 'crypto';
-import pRetry, { AbortError } from 'p-retry';
+import pRetry, { AbortError, type RetryContext } from 'p-retry';
 import { CIRCUIT_BREAKER, LLM_DEFAULTS, METRICS_KEYS, RATE_LIMITING, RETRY_POLICY } from '../config/constants.js';
 import { logger } from '../utils/logger.js';
 
@@ -46,6 +46,25 @@ type QueueEntry = {
   reject: (error: Error) => void;
   timeoutId: NodeJS.Timeout;
 };
+
+type RetryEvent = RetryContext | (Error & { attemptNumber: number; retriesLeft: number });
+
+function normalizeRetryEvent(event: RetryEvent): {
+  message: string;
+  attemptNumber: number;
+  retriesLeft: number;
+} {
+  const attemptNumber = 'attemptNumber' in event ? event.attemptNumber : 0;
+  const retriesLeft = 'retriesLeft' in event ? event.retriesLeft : 0;
+  const rawError = 'error' in event ? event.error : event;
+  const message = rawError instanceof Error ? rawError.message : String(rawError);
+
+  return {
+    message,
+    attemptNumber,
+    retriesLeft,
+  };
+}
 
 class RateLimiter {
   private active = 0;
@@ -400,10 +419,10 @@ Respond with only "VALID" or "INVALID" followed by a brief explanation.`
           factor: RETRY_POLICY.FACTOR,
           minTimeout: RETRY_POLICY.INITIAL_DELAY_MS,
           maxTimeout: RETRY_POLICY.MAX_DELAY_MS,
-          onFailedAttempt: (error) => {
-            const message = error instanceof Error ? error.message : 'Unknown error';
-            logger.warn(`LLM ${operation} attempt ${error.attemptNumber} failed`, {
-              retriesLeft: error.retriesLeft,
+          onFailedAttempt: (event: RetryEvent) => {
+            const { message, attemptNumber, retriesLeft } = normalizeRetryEvent(event);
+            logger.warn(`LLM ${operation} attempt ${attemptNumber} failed`, {
+              retriesLeft,
               message,
             });
           },

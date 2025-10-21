@@ -35,6 +35,7 @@ import {
   searchOracleCommand,
   statsOracleCommand,
 } from './commands/oracle.js';
+import { searchCommand } from './commands/search.js';
 import {
   listResearchCommand,
   searchResearchCommand,
@@ -47,6 +48,11 @@ import {
 } from './commands/guardian.js';
 import { metricsCommand } from './commands/metrics.js';
 import { healthCommand } from './commands/health.js';
+import { workflowCommand } from './commands/workflow.js';
+import { reportCommand } from './commands/report.js';
+import { setupCommand } from './commands/setup.js';
+import { useCommand } from './commands/use.js';
+import { packageCommand } from './commands/package.js';
 
 // Load environment variables
 config();
@@ -131,18 +137,24 @@ program
   .option('-f, --format <type>', 'Output format (table|json)', 'table')
   .action(contextCommand);
 
-// Ingest command
-program
-  .command('ingest <file>')
-  .description('Ingest and process a document')
-  .option('-b, --brand <name>', 'Brand name')
-  .option('-c, --category <type>', 'File category (input|resource|document)')
-  .option('--extract', 'Extract facts', true)
-  .option('--index', 'Create index', true)
-  .action(ingestCommand);
+program.addCommand(ingestCommand);
 
 // Evolve command (Brand Evolution Workshop)
 program.addCommand(evolveCommand);
+
+// Workflow (agentic orchestrator)
+program.addCommand(workflowCommand);
+
+// Report
+program.addCommand(reportCommand);
+
+// Setup & Use
+program.addCommand(setupCommand);
+program.addCommand(useCommand);
+program.addCommand(packageCommand);
+
+// Search command
+program.addCommand(searchCommand);
 
 // Prompts command group
 const promptsCmd = program

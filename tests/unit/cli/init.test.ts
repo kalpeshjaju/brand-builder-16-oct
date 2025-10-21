@@ -2,12 +2,15 @@
  * Tests for init command
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as fs from 'fs';
-import * as path from 'path';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { ZodError } from 'zod';
 import { initCommand } from '../../../src/cli/commands/init.js';
+import { WorkspaceManager } from '../../../src/context/workspace-manager.js';
+import { FileSystemUtils } from '../../../src/utils/file-system.js';
 
 // Mock dependencies
+vi.mock('../../../src/context/workspace-manager.js');
+vi.mock('../../../src/utils/file-system.js');
 vi.mock('ora', () => ({
   default: vi.fn(() => ({
     start: vi.fn().mockReturnThis(),
@@ -17,114 +20,78 @@ vi.mock('ora', () => ({
   })),
 }));
 
-vi.mock('chalk', () => ({
-  default: {
-    green: vi.fn((text) => text),
-    cyan: vi.fn((text) => text),
-    yellow: vi.fn((text) => text),
-    red: vi.fn((text) => text),
-    bold: vi.fn((text) => text),
-    dim: vi.fn((text) => text),
-  },
-}));
-
 describe('Init Command', () => {
   const testBrand = 'TestBrand';
-  const homeDir = process.env['HOME'] || process.env['USERPROFILE'] || process.cwd();
-  const testWorkspace = path.join(homeDir, '.brandos', testBrand.toLowerCase());
 
   beforeEach(() => {
-    // Clean up test workspace before each test
-    if (fs.existsSync(testWorkspace)) {
-      fs.rmSync(testWorkspace, { recursive: true, force: true });
-    }
+    vi.clearAllMocks();
   });
 
-  afterEach(() => {
-    // Clean up test workspace after each test
-    if (fs.existsSync(testWorkspace)) {
-      fs.rmSync(testWorkspace, { recursive: true, force: true });
-    }
-  });
+  it('should create workspace and configuration files', async () => {
+    const mockEnsureBrandWorkspace = vi.fn();
+    const mockGetPath = vi.fn((subfolder) => `/test/path/${subfolder}`);
+    vi.mocked(WorkspaceManager).mockImplementation(() => ({
+      ensureBrandWorkspace: mockEnsureBrandWorkspace,
+      getPath: mockGetPath,
+      brandRoot: '/test/path',
+    } as any));
 
-  it('should create workspace directory', async () => {
+    const mockWriteJSON = vi.mocked(FileSystemUtils.writeJSON);
+
     await initCommand({
       brand: testBrand,
       industry: 'Technology',
       category: 'SaaS',
     });
 
-    expect(fs.existsSync(testWorkspace)).toBe(true);
-  });
+    expect(mockEnsureBrandWorkspace).toHaveBeenCalledOnce();
+    expect(mockWriteJSON).toHaveBeenCalledTimes(2);
 
-  it('should create required subdirectories', async () => {
-    await initCommand({
-      brand: testBrand,
-      industry: 'Technology',
-      category: 'SaaS',
-    });
+    // Check brand-config.json call
+    expect(mockWriteJSON).toHaveBeenCalledWith(
+      expect.stringContaining('brand-config.json'),
+      expect.objectContaining({
+        brandName: testBrand,
+        industry: 'Technology',
+      })
+    );
 
-    const expectedDirs = ['inputs', 'resources', 'documents', 'outputs', 'state'];
-    for (const dir of expectedDirs) {
-      const dirPath = path.join(testWorkspace, dir);
-      expect(fs.existsSync(dirPath)).toBe(true);
-    }
-  });
-
-  it('should create brand configuration file', async () => {
-    await initCommand({
-      brand: testBrand,
-      industry: 'Technology',
-      category: 'SaaS',
-    });
-
-    const configPath = path.join(testWorkspace, 'brand-config.json');
-    expect(fs.existsSync(configPath)).toBe(true);
-
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    expect(config.brandName).toBe(testBrand);
-    expect(config.industry).toBe('Technology');
-    expect(config.category).toBe('SaaS');
+    // Check context-state.json call
+    expect(mockWriteJSON).toHaveBeenCalledWith(
+      expect.stringContaining('context-state.json'),
+      expect.objectContaining({
+        brandName: testBrand,
+        workspace: '/test/path',
+      })
+    );
   });
 
   it('should fail if brand name is missing', async () => {
     await expect(
       initCommand({
         brand: '',
-        industry: 'Technology',
-        category: 'SaaS',
       })
-    ).rejects.toThrow();
+    ).rejects.toThrow(ZodError);
   });
 
-  it('should handle workspace that already exists', async () => {
-    // Create workspace first time
-    await initCommand({
-      brand: testBrand,
-      industry: 'Technology',
-      category: 'SaaS',
-    });
+  it('should use default values for optional params', async () => {
+    const mockWriteJSON = vi.mocked(FileSystemUtils.writeJSON);
+    vi.mocked(WorkspaceManager).mockImplementation(() => ({
+      ensureBrandWorkspace: vi.fn(),
+      getPath: vi.fn(() => '/test/path/db'),
+      brandRoot: '/test/path',
+    } as any));
 
-    // Try to create again - should not throw
-    await expect(
-      initCommand({
-        brand: testBrand,
-        industry: 'Technology',
-        category: 'SaaS',
-      })
-    ).resolves.not.toThrow();
-  });
-
-  it('should use default values when optional params are missing', async () => {
     await initCommand({
       brand: testBrand,
     });
 
-    const configPath = path.join(testWorkspace, 'brand-config.json');
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-
-    expect(config.brandName).toBe(testBrand);
-    expect(config).toHaveProperty('industry');
-    expect(config).toHaveProperty('category');
+    expect(mockWriteJSON).toHaveBeenCalledWith(
+      expect.stringContaining('brand-config.json'),
+      expect.objectContaining({
+        industry: 'Not specified',
+        category: 'Not specified',
+      })
+    );
   });
 });

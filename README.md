@@ -6,12 +6,12 @@ Transform your brand through intelligent research, contradiction detection, and 
 
 ## Production Status
 
-✅ **PRODUCTION-READY** - Validated October 17, 2025
+⚠️ **Partially Ready** — See `PRODUCTION_READY_STATUS.md`
 
-- **76/76 tests passing (100%)**
-- **Zero TypeScript errors**
-- **Real-world tested** with revaaforyou.com
-- **Phases 1-2 fully functional**
+- Phases 1–2 validated end-to-end
+- Zero TypeScript errors
+- Real-world tested with revaaforyou.com
+- Further fixes and validation tracked in `PRODUCTION_READY_STATUS.md`
 
 ---
 
@@ -46,31 +46,76 @@ npm run build
 
 ### Usage
 
-**Evolution Workshop** (Phases 1-2 working):
+**Full Evolution Workshop:**
 
 ```bash
-# Run brand evolution analysis
+# Run complete 5-phase evolution
 npm run dev evolve -- --brand "YourBrand" --url "https://yourwebsite.com"
 
-# Example with real brand
-npm run dev evolve -- --brand "Revaa" --url "https://revaaforyou.com"
+# With competitors
+npm run dev evolve -- --brand "YourBrand" --url "https://yourwebsite.com" \
+  --competitors "https://competitor1.com" "https://competitor2.com"
 ```
 
-**What it does**:
-- **Phase 1: Research Blitz** (~2 min) - Analyzes website, detects contradictions
-- **Phase 2: Pattern Presentation** (~1 min) - Identifies language gaps, inflection points
-- **Phase 3: Creative Direction** (interactive) - Guide strategic decisions
-- **Phase 4: Validation** - Claude validates your direction
-- **Phase 5: Build-Out** - Generate complete strategy
+**Per-Phase Commands:**
 
-**Initialize Brand Workspace**:
+```bash
+# Phase 1: Research Blitz (~2 min)
+npm run dev evolve research -- --brand "YourBrand" --url "https://yourwebsite.com"
+
+# Phase 2: Pattern Presentation (~1 min)
+npm run dev evolve present -- --brand "YourBrand"
+# Automatically uses results from Phase 1 if available
+
+# Phase 3: Creative Direction (interactive)
+npm run dev evolve direct -- --brand "YourBrand"
+# Or use non-interactive mode with config:
+npm run dev evolve direct -- --brand "YourBrand" --config creative-config.json
+
+# Phase 4: Validation (~1 min)
+npm run dev evolve validate -- --brand "YourBrand"
+
+# Phase 5: Build-Out (~2 min)
+npm run dev evolve build -- --brand "YourBrand"
+```
+
+**Common Options:**
+
+```bash
+--force              # Re-run phase even if already complete
+--output <dir>       # Custom output directory
+--competitors <urls> # Competitor URLs for analysis
+--config <path>      # Config file (for non-interactive Phase 3)
+```
+
+**Examples:**
+
+```bash
+# Run only research phase
+npm run dev evolve research -- --brand "Revaa" --url "https://revaaforyou.com"
+
+# Resume from Phase 3 with config
+npm run dev evolve direct -- --brand "Revaa" --config my-direction.json
+
+# Re-run validation with --force
+npm run dev evolve validate -- --brand "Revaa" --force
+```
+
+**What each phase does:**
+
+| Phase | Command | Duration | Description |
+|-------|---------|----------|-------------|
+| 1. Research Blitz | `research` | ~2 min | Web analysis, contradiction detection |
+| 2. Pattern Presentation | `present` | ~1 min | Language gaps, inflection points |
+| 3. Creative Direction | `direct` | Interactive | Strategic decision guidance (you lead) |
+| 4. Validation | `validate` | ~1 min | Claude validates your direction |
+| 5. Build-Out | `build` | ~2 min | Generate complete strategy |
+
+**Initialize Brand Workspace:**
 
 ```bash
 npm run dev init -- --brand "YourBrand" --industry "Technology" --category "SaaS"
 ```
-
----
-
 ## Features
 
 ### Working (Production-Ready)
@@ -78,10 +123,10 @@ npm run dev init -- --brand "YourBrand" --industry "Technology" --category "SaaS
 - ✅ **Brand Analysis** - Deep contradiction detection
 - ✅ **Pattern Recognition** - Language gaps, inflection points
 - ✅ **Workspace Management** - Multi-brand support
+- ✅ **Phase 3-5 Automation** - Config-mode tests covering creative direction, validation, and build-out flows
 - ✅ **Test Suite** - 76 tests, 100% pass rate
 
 ### Planned (Future)
-- ⏳ Phases 3-5 end-to-end testing
 - ⏳ Complete strategy generation
 - ⏳ Quality validation system
 - ⏳ Document ingestion
@@ -164,6 +209,11 @@ brand-builder-16-oct/
 - [FINAL_PRODUCTION_STATUS.md](FINAL_PRODUCTION_STATUS.md) - Complete status report
 - [FINAL_STATUS.md](FINAL_STATUS.md) - Feature status
 - [CLI_OUTPUT_GUIDE.md](docs/CLI_OUTPUT_GUIDE.md) - CLI standards
+- [LLM Collaboration Guide](docs/LLM_COLLABORATION_GUIDE.md) - How to add/modify agents safely
+- [Workflow Config](docs/WORKFLOW_CONFIG.md) - Define stages/agents via JSON
+- [Non-Technical Overview](docs/NON_TECHNICAL_OVERVIEW.md) - Plain-English walkthrough
+- [Build & Rate Limits](docs/BUILD_AND_RATE_LIMITS.md) - Build/run steps and rate-limit playbook
+- [Implementation Roadmap](docs/IMPLEMENTATION_ROADMAP.md) - What to build next and how
 
 ---
 
@@ -188,6 +238,11 @@ brand-builder-16-oct/
 - Inflection point detection
 - Pattern presentation
 
+### ✅ Evolution Workshop (Phases 3-5)
+- Creative direction capture via config or interactive prompts
+- Validation engine scored with automated regression tests
+- Build-out generator verified through deterministic integration test
+
 ### ✅ Workspace Management
 - Multi-brand support
 - Directory creation
@@ -202,9 +257,9 @@ brand-builder-16-oct/
 
 ## Known Limitations
 
-- Phases 3-5 require end-to-end testing
 - Interactive prompts only work in terminal (not in background)
 - ESLint configuration not setup
+- SPA sites may require JS rendering (optional flag planned)
 
 ---
 
@@ -215,7 +270,6 @@ MIT
 ---
 
 **Created**: October 16, 2025
-**Production-Ready**: October 17, 2025
-**Status**: ✅ Phases 1-2 Validated, Ready for Use
+**Status**: ⚠️ Phases 1–2 Validated (see `PRODUCTION_READY_STATUS.md`)
 
-**Confidence**: 95% - Tool works reliably for brand analysis and pattern detection
+**Note**: We are aligning architecture toward a pluggable agent model in-place. A new orchestrator and agent interface will be introduced incrementally without breaking existing flows.

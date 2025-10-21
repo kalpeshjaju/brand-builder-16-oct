@@ -72,7 +72,7 @@ brandos ingest document.pdf --brand "Acme Corp"
 ### ✅ Testing Infrastructure
 
 - Vitest configured
-- 5 passing unit tests
+- Integration coverage for evolution phases 3-5 (config-mode pipeline)
 - Test coverage framework ready
 - Watch mode available
 

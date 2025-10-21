@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import pRetry, { AbortError } from 'p-retry';
+import pRetry, { AbortError, type RetryContext } from 'p-retry';
 import type { Ora } from 'ora';
 import { logger } from '../../utils/logger.js';
 import { RETRY_POLICY } from '../../config/constants.js';
@@ -9,6 +9,25 @@ export interface CommandRetryOptions {
   factor?: number;
   minTimeout?: number;
   maxTimeout?: number;
+}
+
+type RetryEvent = RetryContext | (Error & { attemptNumber: number; retriesLeft: number });
+
+function normalizeRetryEvent(event: RetryEvent): {
+  message: string;
+  attemptNumber: number;
+  retriesLeft: number;
+} {
+  const attemptNumber = 'attemptNumber' in event ? event.attemptNumber : 0;
+  const retriesLeft = 'retriesLeft' in event ? event.retriesLeft : 0;
+  const rawError = 'error' in event ? event.error : event;
+  const message = rawError instanceof Error ? rawError.message : String(rawError);
+
+  return {
+    message,
+    attemptNumber,
+    retriesLeft,
+  };
 }
 
 export class CommandExecutionError extends Error {
@@ -31,8 +50,7 @@ export class NonRetryableError extends CommandExecutionError {
 export async function runWithRetry<T>(
   operationName: string,
   operation: () => Promise<T>,
-  retryOptions: CommandRetryOptions = {},
-  onFailedAttempt?: (error: unknown) => void
+  retryOptions: CommandRetryOptions = {}
 ): Promise<T> {
   const {
     retries = RETRY_POLICY.MAX_ATTEMPTS - 1,
@@ -41,56 +59,33 @@ export async function runWithRetry<T>(
     maxTimeout = RETRY_POLICY.MAX_DELAY_MS,
   } = retryOptions;
 
-  let lastError: Error | undefined;
-  let lastAttempt = 0;
-
-  try {
-    return await pRetry(async () => {
-      try {
-        return await operation();
-      } catch (error) {
-        if (error instanceof NonRetryableError) {
-          throw new AbortError(error.message);
-        }
-        if (error instanceof Error) {
-          throw error;
-        }
-        throw new Error(String(error));
+  return pRetry(async () => {
+    try {
+      return await operation();
+    } catch (error) {
+      if (error instanceof NonRetryableError) {
+        throw new AbortError(error.message);
       }
-    }, {
-      retries,
-      factor,
-      minTimeout,
-      maxTimeout,
-      onFailedAttempt: (error) => {
-        const normalizedAttemptError = error instanceof Error ? error : new Error(String(error));
-        const message = normalizedAttemptError.message ?? 'Unknown error';
-        lastAttempt = error.attemptNumber;
-        lastError = normalizedAttemptError;
-        const total = error.retriesLeft + error.attemptNumber;
-        logger.warn(`Operation '${operationName}' failed (attempt ${error.attemptNumber}/${total})`, {
-          error: message,
-        });
-        onFailedAttempt?.(error);
-      },
-    });
-  } catch (error) {
-    const normalizedError = error instanceof Error ? error : new Error(String(error));
-
-    const attempts = lastAttempt > 0 ? lastAttempt : retries + 1;
-    const cause = lastError ?? normalizedError;
-    if (normalizedError instanceof AbortError) {
-      throw new CommandExecutionError(
-        `Operation '${operationName}' aborted after ${attempts} attempt${attempts === 1 ? '' : 's'}`,
-        { cause }
-      );
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error(String(error));
     }
-
-    throw new CommandExecutionError(
-      `Operation '${operationName}' failed after ${attempts} attempt${attempts === 1 ? '' : 's'}`,
-      { cause }
-    );
-  }
+  },
+  {
+    retries,
+    factor,
+    minTimeout,
+    maxTimeout,
+    onFailedAttempt: (event: RetryEvent) => {
+      const { message, attemptNumber, retriesLeft } = normalizeRetryEvent(event);
+      const totalAttempts = attemptNumber + retriesLeft;
+      const attemptInfo = totalAttempts > 0 ? `${attemptNumber}/${totalAttempts}` : `${attemptNumber}`;
+      logger.warn(`Operation '${operationName}' failed (attempt ${attemptInfo})`, {
+        error: message,
+      });
+    },
+  });
 }
 
 export function handleCommandError(commandName: string, error: unknown, spinner?: Ora): void {

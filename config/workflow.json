@@ -1,0 +1,69 @@
+{
+  "$schema": "./workflow.schema.json",
+  "features": {
+    "useOracle": false
+  },
+  "stages": [
+    {
+      "name": "Oracle Context",
+      "agents": [
+        { "name": "oracle.context" }
+      ]
+    },
+    {
+      "name": "Discovery",
+      "agents": [
+        { "name": "evolution.research-blitz" },
+        { "name": "evolution.pattern-presentation" }
+      ]
+    },
+    {
+      "name": "Strategy",
+      "agents": [
+        { "name": "evolution.creative-direction" }
+      ]
+    },
+    {
+      "name": "Validation",
+      "agents": [
+        { "name": "evolution.validation" }
+      ]
+    },
+    {
+      "name": "Guardian Gates",
+      "agents": [
+        { "name": "guardian.source-quality" },
+        { "name": "guardian.recency" },
+        { "name": "guardian.readiness" },
+        { "name": "guardian.numeric-variance" },
+        { "name": "guardian.cross-verify" },
+        { "name": "guardian.gates" }
+      ]
+    },
+    {
+      "name": "Build-Out",
+      "agents": [
+        { "name": "evolution.build-out" }
+      ]
+    },
+    {
+      "name": "Documentation",
+      "agents": [
+        { "name": "docs.teardown" },
+        { "name": "docs.narrative" },
+        { "name": "docs.product-catalog" },
+        { "name": "docs.pricing-guide" },
+        { "name": "docs.corporate-catalog" },
+        { "name": "docs.training-guide" },
+        { "name": "docs.asset-map" }
+      ]
+    },
+    {
+      "name": "Horizon Frameworks",
+      "agents": [
+        { "name": "genesis.research-topics" },
+        { "name": "genesis.deliverables-bundle" }
+      ]
+    }
+  ]
+}

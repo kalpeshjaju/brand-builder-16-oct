@@ -174,13 +174,13 @@ brandos oracle    # Semantic search
 |-------|--------|---------|-------------------|
 | 1. Research Blitz | ✅ Working | ✅ Tested | ✅ YES |
 | 2. Pattern Presentation | ✅ Working | ✅ Tested | ✅ YES |
-| 3. Creative Direction | ⏸️ Started | ⚠️ Partial | ⏳ Needs testing |
-| 4. Validation | ⚠️ Implemented | ❌ Not tested | ❌ Unknown |
-| 5. Build-Out | ⚠️ Implemented | ❌ Not tested | ❌ Unknown |
+| 3. Creative Direction | ✅ Working (config mode) | ✅ Automated regression | ⚠️ Interactive UX validation pending |
+| 4. Validation | ✅ Working (mocked inference) | ✅ Automated regression | ⚠️ Live LLM validation pending |
+| 5. Build-Out | ✅ Working (mocked inference) | ✅ Automated regression | ⚠️ Live LLM validation pending |
 
 **User Impact**:
 - Can confidently use Phases 1-2 for client work TODAY
-- Phases 3-5 need validation before client delivery
+- Phases 3-5 deliver consistent outputs in config-mode tests; interactive and live LLM validation still required before unattended client delivery
 
 ---
 
@@ -205,13 +205,13 @@ brandos oracle    # Semantic search
 
 1. **Complete Test Coverage**
    - Documentation says: "26 tests passing"
-   - Reality: 0 tests exist
-   - **Impact**: Can't verify quality automatically
+   - Reality: Targeted integration tests now cover phases 3-5 in config-mode with mocked LLMs
+   - **Impact**: Core evolution flow has regression coverage, but interactive and live-inference paths still need verification
 
 2. **Full Workflow Validation**
    - Phases 1-2: Tested ✅
-   - Phases 3-5: Not tested ❌
-   - **Impact**: Unknown reliability for full workflow
+   - Phases 3-5: Automated config-mode tests ✅ / Live LLM validation ❌
+   - **Impact**: Confidence improving, but production validation requires running against real models and interactive sessions
 
 3. **Visual Analysis**
    - Can analyze text content ✅

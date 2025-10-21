@@ -109,6 +109,13 @@ class MetricsRegistry {
   }
 
   /**
+   * Observe a value (alias for histogram for compatibility with metric interfaces)
+   */
+  observe(name: string, value: number, labels?: Record<string, string>): void {
+    this.histogram(name, value, labels);
+  }
+
+  /**
    * Get aggregated statistics for a metric
    *
    * WHY: Query metrics for monitoring dashboards or logs

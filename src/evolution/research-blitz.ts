@@ -25,6 +25,7 @@ export interface ResearchBlitzConfig {
   brandUrl: string;
   competitorUrls?: string[];
   maxCompetitors?: number;
+  oracleSnippets?: string[];
 }
 
 export class ResearchBlitz {
@@ -42,31 +43,37 @@ export class ResearchBlitz {
   /**
    * Run the complete research blitz
    */
-  async execute(): Promise<ResearchBlitzOutput> {
+  async execute(onProgress?: (message: string) => void): Promise<ResearchBlitzOutput> {
     logger.info('Starting research blitz', { brand: this.config.brandName });
 
     try {
       // Phase 1.1: Brand Audit
+      onProgress?.('Conducting brand audit...');
       logger.info('Conducting brand audit...');
       const brandAudit = await this.conductBrandAudit();
 
       // Phase 1.2: Competitor Analysis
+      onProgress?.('Analyzing competitors...');
       logger.info('Analyzing competitors...');
       const competitors = await this.analyzeCompetitors();
 
       // Phase 1.3: Market Gap Analysis
+      onProgress?.('Identifying market gaps...');
       logger.info('Identifying market gaps...');
       const marketGaps = await this.identifyMarketGaps(brandAudit, competitors);
 
       // Phase 1.4: Contradiction Detection
+      onProgress?.('Detecting contradictions...');
       logger.info('Detecting contradictions...');
       const contradictions = await this.detectContradictions(brandAudit);
 
       // Phase 1.5: Customer Language Mining
+      onProgress?.('Mining customer language...');
       logger.info('Mining customer language...');
       const customerLanguage = await this.mineCustomerLanguage();
 
       // Phase 1.6: Cultural Context
+      onProgress?.('Gathering cultural context...');
       logger.info('Gathering cultural context...');
       const culturalContext = await this.gatherCulturalContext();
 
@@ -105,24 +112,41 @@ export class ResearchBlitz {
    * Conduct comprehensive brand audit
    */
   private async conductBrandAudit(): Promise<BrandAudit> {
-    // Fetch actual website content
+    // Fetch actual website content (or build offline stub)
     let webContent: WebFetchResult;
-    try {
-      webContent = await webFetcher.fetch(this.config.brandUrl);
-    } catch (error) {
-      logger.error('Failed to fetch brand website', error);
-      throw new Error(
-        `Cannot analyze brand - failed to fetch ${this.config.brandUrl}\n` +
-        `Reason: ${(error as Error).message}\n` +
-        `Fix: Ensure URL is accessible and correct.`
-      );
+    if ((process.env['BRANDOS_OFFLINE'] || '').toLowerCase() === 'true') {
+      webContent = {
+        url: this.config.brandUrl,
+        title: `Offline Stub: ${this.config.brandName}`,
+        content: `Offline content stub for ${this.config.brandName} at ${this.config.brandUrl}.` ,
+        metaDescription: 'Offline mode stub',
+        headings: ['Offline Heading A', 'Offline Heading B'],
+        links: [],
+        fetchedAt: new Date().toISOString(),
+        cached: false,
+      };
+    } else {
+      try {
+        webContent = await webFetcher.fetch(this.config.brandUrl);
+      } catch (error) {
+        logger.error('Failed to fetch brand website', error);
+        throw new Error(
+          `Cannot analyze brand - failed to fetch ${this.config.brandUrl}\n` +
+          `Reason: ${(error as Error).message}\n` +
+          `Fix: Ensure URL is accessible and correct.`
+        );
+      }
     }
 
     const systemPrompt = `You are a brand analyst conducting an objective audit.
 Extract factual information only. NO recommendations or subjective opinions.
 Focus on what EXISTS, not what should be.`;
 
-    const userPrompt = `Analyze the brand "${this.config.brandName}" based on this website content:
+    const extra = (this.config.oracleSnippets && this.config.oracleSnippets.length)
+      ? `\n\nADDITIONAL CONTEXT (from semantic search):\n- ${this.config.oracleSnippets.slice(0,5).join('\n- ')}`
+      : '';
+
+    const userPrompt = `Analyze the brand "${this.config.brandName}" based on this website content${extra}:
 
 WEBSITE: ${this.config.brandUrl}
 TITLE: ${webContent.title}
@@ -226,23 +250,36 @@ Format as JSON with keys: positioning, visualIdentity, messaging, uxFindings, cu
    * Analyze a single competitor
    */
   private async analyzeCompetitor(url: string): Promise<CompetitorAnalysis> {
-    // Fetch competitor website
+    // Fetch competitor website (or offline stub)
     let webContent: WebFetchResult;
-    try {
-      webContent = await webFetcher.fetch(url);
-    } catch (error) {
-      logger.warn(`Failed to fetch competitor ${url}`, error);
-      // Return minimal analysis if fetch fails
-      return {
-        name: new URL(url).hostname,
+    if ((process.env['BRANDOS_OFFLINE'] || '').toLowerCase() === 'true') {
+      webContent = {
         url,
-        positioning: 'Unable to fetch - website inaccessible',
-        strengths: [],
-        weaknesses: ['Website could not be accessed for analysis'],
-        differentiators: [],
-        pricing: 'Unknown',
-        channels: [],
+        title: `Offline Stub: ${new URL(url).hostname}`,
+        content: `Offline competitor stub for ${url}`,
+        metaDescription: 'Offline mode stub',
+        headings: ['Competitor Offline H1'],
+        links: [],
+        fetchedAt: new Date().toISOString(),
+        cached: false,
       };
+    } else {
+      try {
+        webContent = await webFetcher.fetch(url);
+      } catch (error) {
+        logger.warn(`Failed to fetch competitor ${url}`, error);
+        // Return minimal analysis if fetch fails
+        return {
+          name: new URL(url).hostname,
+          url,
+          positioning: 'Unable to fetch - website inaccessible',
+          strengths: [],
+          weaknesses: ['Website could not be accessed for analysis'],
+          differentiators: [],
+          pricing: 'Unknown',
+          channels: [],
+        };
+      }
     }
 
     const systemPrompt = `You are analyzing a competitor. Extract ONLY factual information.

@@ -22,9 +22,13 @@ const logger = new Logger('ValidationEngine');
 
 export class ValidationEngine {
   private llm: LLMService;
+  private oracleExtra: string;
 
-  constructor() {
+  constructor(options?: { oracleSnippets?: string[] }) {
     this.llm = new LLMService({ temperature: 0.1 }); // Very low temp for analytical work
+    this.oracleExtra = options?.oracleSnippets && options.oracleSnippets.length
+      ? `\n\nADDITIONAL CONTEXT (from semantic search):\n- ${options.oracleSnippets.slice(0,5).join('\n- ')}`
+      : '';
   }
 
   /**
@@ -115,7 +119,7 @@ export class ValidationEngine {
 Check if the proposed direction fits with the brand's DNA, history, and capabilities.
 Be analytical and objective.`;
 
-    const userPrompt = `Brand: ${research.brandName}
+    const userPrompt = `Brand: ${research.brandName}${this.oracleExtra}
 
 CURRENT BRAND STATE:
 ${research.brandAudit.currentState}
@@ -177,7 +181,7 @@ Base assessment on research findings ONLY.`;
     const marketGaps = research.marketGaps.map(g => `${g.gap}: ${g.description}`).join('\n');
     const contradictions = research.contradictions.map(c => c.what).join('\n');
 
-    const userPrompt = `Proposed Direction: ${direction.primaryDirection}
+    const userPrompt = `Proposed Direction: ${direction.primaryDirection}${this.oracleExtra}
 
 AVAILABLE RESEARCH:
 
