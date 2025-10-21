@@ -46,31 +46,76 @@ npm run build
 
 ### Usage
 
-**Evolution Workshop** (Phases 1-2 working):
+**Full Evolution Workshop:**
 
 ```bash
-# Run brand evolution analysis
+# Run complete 5-phase evolution
 npm run dev evolve -- --brand "YourBrand" --url "https://yourwebsite.com"
 
-# Example with real brand
-npm run dev evolve -- --brand "Revaa" --url "https://revaaforyou.com"
+# With competitors
+npm run dev evolve -- --brand "YourBrand" --url "https://yourwebsite.com" \
+  --competitors "https://competitor1.com" "https://competitor2.com"
 ```
 
-**What it does**:
-- **Phase 1: Research Blitz** (~2 min) - Analyzes website, detects contradictions
-- **Phase 2: Pattern Presentation** (~1 min) - Identifies language gaps, inflection points
-- **Phase 3: Creative Direction** (interactive) - Guide strategic decisions
-- **Phase 4: Validation** - Claude validates your direction
-- **Phase 5: Build-Out** - Generate complete strategy
+**Per-Phase Commands:**
 
-**Initialize Brand Workspace**:
+```bash
+# Phase 1: Research Blitz (~2 min)
+npm run dev evolve research -- --brand "YourBrand" --url "https://yourwebsite.com"
+
+# Phase 2: Pattern Presentation (~1 min)
+npm run dev evolve present -- --brand "YourBrand"
+# Automatically uses results from Phase 1 if available
+
+# Phase 3: Creative Direction (interactive)
+npm run dev evolve direct -- --brand "YourBrand"
+# Or use non-interactive mode with config:
+npm run dev evolve direct -- --brand "YourBrand" --config creative-config.json
+
+# Phase 4: Validation (~1 min)
+npm run dev evolve validate -- --brand "YourBrand"
+
+# Phase 5: Build-Out (~2 min)
+npm run dev evolve build -- --brand "YourBrand"
+```
+
+**Common Options:**
+
+```bash
+--force              # Re-run phase even if already complete
+--output <dir>       # Custom output directory
+--competitors <urls> # Competitor URLs for analysis
+--config <path>      # Config file (for non-interactive Phase 3)
+```
+
+**Examples:**
+
+```bash
+# Run only research phase
+npm run dev evolve research -- --brand "Revaa" --url "https://revaaforyou.com"
+
+# Resume from Phase 3 with config
+npm run dev evolve direct -- --brand "Revaa" --config my-direction.json
+
+# Re-run validation with --force
+npm run dev evolve validate -- --brand "Revaa" --force
+```
+
+**What each phase does:**
+
+| Phase | Command | Duration | Description |
+|-------|---------|----------|-------------|
+| 1. Research Blitz | `research` | ~2 min | Web analysis, contradiction detection |
+| 2. Pattern Presentation | `present` | ~1 min | Language gaps, inflection points |
+| 3. Creative Direction | `direct` | Interactive | Strategic decision guidance (you lead) |
+| 4. Validation | `validate` | ~1 min | Claude validates your direction |
+| 5. Build-Out | `build` | ~2 min | Generate complete strategy |
+
+**Initialize Brand Workspace:**
 
 ```bash
 npm run dev init -- --brand "YourBrand" --industry "Technology" --category "SaaS"
 ```
-
----
-
 ## Features
 
 ### Working (Production-Ready)
