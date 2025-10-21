@@ -8,6 +8,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { Logger } from '../utils/logger.js';
+import { RetrievalEngine } from '../oracle/retrieval-engine.js';
 import type {
   PatternPresentationOutput,
   CreativeDirectionOutput,
@@ -22,6 +23,12 @@ import type { CreativeDirectionConfig, CreativeDirectorMode } from '../types/evo
 const logger = new Logger('CreativeDirector');
 
 export class CreativeDirector {
+  private retrievalEngine: RetrievalEngine;
+
+  constructor() {
+    this.retrievalEngine = new RetrievalEngine();
+  }
+
   /**
    * Capture creative direction (supports interactive and config modes)
    */
@@ -35,11 +42,14 @@ export class CreativeDirector {
       mode,
     });
 
-    if (mode === 'config') {
-      return await this.captureFromConfig(patterns, config!);
+    try {
+      if (mode === 'config') {
+        return await this.captureFromConfig(patterns, config!);
+      }
+      return await this.captureInteractive(patterns);
+    } finally {
+      this.retrievalEngine.close();
     }
-
-    return await this.captureInteractive(patterns);
   }
 
   /**
@@ -194,6 +204,14 @@ export class CreativeDirector {
       console.log(chalk.yellow(`Evidence Shows: ${contradiction.evidenceShows}`));
       console.log(chalk.gray(`Implication: ${contradiction.implication}`));
       console.log(chalk.gray(`Severity: ${contradiction.severity}`));
+
+      const suggestions = await this.retrievalEngine.retrieve(contradiction.implication);
+      if (suggestions.length > 0) {
+        console.log(chalk.bold('\n🧠 Contextual Suggestions:'));
+        suggestions.forEach((suggestion: any, i: number) => {
+          console.log(chalk.gray(`  ${i + 1}. ${suggestion.documents[0][0]}`));
+        });
+      }
 
       const { action } = await inquirer.prompt([
         {

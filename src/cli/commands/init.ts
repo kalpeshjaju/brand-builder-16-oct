@@ -1,6 +1,7 @@
 // Init command - Initialize a brand workspace
 
-import type { InitCommandOptions } from '../../types/index.js';
+import path from 'path';
+import { WorkspaceManager } from '../../context/workspace-manager.js';
 import { FileSystemUtils, logger } from '../../utils/index.js';
 import { sanitizeBrandName, sanitizeOptionalText } from '../../validation/input-schemas.js';
 import { handleCommandError } from '../utils/error-handler.js';
@@ -17,21 +18,10 @@ export async function initCommand(options: InitCommandOptions): Promise<void> {
   try {
     logger.info('Initializing workspace', { brand, industry, category });
 
-    // Create workspace directories
-    const workspacePath = FileSystemUtils.getBrandWorkspacePath(brand);
-    await FileSystemUtils.ensureDir(workspacePath);
-
-    // User-facing directories (for documents and outputs)
-    await FileSystemUtils.ensureDir(`${workspacePath}/inputs`);
-    await FileSystemUtils.ensureDir(`${workspacePath}/resources`);
-    await FileSystemUtils.ensureDir(`${workspacePath}/documents`);
-    await FileSystemUtils.ensureDir(`${workspacePath}/outputs`);
-    await FileSystemUtils.ensureDir(`${workspacePath}/state`);
-
-    // Internal directories (for data, cache, logs)
-    await FileSystemUtils.ensureDir(`${workspacePath}/data`);
-    await FileSystemUtils.ensureDir(`${workspacePath}/cache`);
-    await FileSystemUtils.ensureDir(`${workspacePath}/logs`);
+    // Create workspace directories using the manager
+    const workspaceManager = new WorkspaceManager(brand);
+    await workspaceManager.ensureBrandWorkspace();
+    const workspacePath = workspaceManager.brandRoot;
 
     // Create brand configuration
     const config = {
@@ -50,7 +40,7 @@ export async function initCommand(options: InitCommandOptions): Promise<void> {
       version: '1.0.0',
     };
 
-    await FileSystemUtils.writeJSON(`${workspacePath}/brand-config.json`, config);
+    await FileSystemUtils.writeJSON(path.join(workspacePath, 'brand-config.json'), config);
 
     // Create initial context state
     const contextState = {
@@ -68,7 +58,7 @@ export async function initCommand(options: InitCommandOptions): Promise<void> {
       },
     };
 
-    await FileSystemUtils.writeJSON(`${workspacePath}/data/context-state.json`, contextState);
+    await FileSystemUtils.writeJSON(path.join(workspaceManager.getPath('db'), 'context-state.json'), contextState);
 
     spinner.succeed(chalk.green('Workspace initialized successfully!'));
 

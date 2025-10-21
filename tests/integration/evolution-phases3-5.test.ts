@@ -1,4 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import inquirer from 'inquirer';
+vi.mock('inquirer');
 
 vi.mock('../../src/genesis/llm-service.js', () => {
   class MockLLMService {
@@ -240,51 +242,6 @@ import type { CreativeDirectionConfig } from '../../src/types/evolution-config-t
 
 describe('Evolution phases 3-5 integration', () => {
   it('captures creative direction, validates it, and builds the final strategy', async () => {
-    const patterns: PatternPresentationOutput = {
-      brandName: 'Test Brand',
-      generatedAt: new Date().toISOString(),
-      contradictions: [
-        {
-          id: 'contradiction-1',
-          brandSays: 'We are the premium snack',
-          evidenceShows: 'Website emphasizes discounts heavily',
-          implication: 'Erodes premium perception',
-          severity: 'high',
-        },
-      ],
-      whiteSpace: [
-        {
-          id: 'gap-1',
-          description: 'Own compostable packaging leadership',
-          competitorFocus: 'Speed and price promotions',
-          untappedOpportunity: 'Make sustainability tangible through packaging loop',
-          evidence: ['Competitor sites lack compost messaging'],
-        },
-      ],
-      languageGaps: [
-        {
-          customersSay: 'I want indulgence without guilt',
-          brandSays: 'We are just convenient snacks',
-          gap: 'Emotionally resonant sustainability story missing',
-          examples: ['Customer survey 2025'],
-        },
-      ],
-      positioningMap: {
-        axis1: { name: 'Price', low: 'Budget', high: 'Premium' },
-        axis2: { name: 'Sustainability', low: 'Basic', high: 'Regenerative' },
-        brands: [],
-      },
-      inflectionPoints: [
-        {
-          type: 'trend',
-          description: 'Compost-at-home programs in major cities expanding',
-          timing: 'emerging',
-          impact: 'high',
-          evidence: ['NYC curbside compost expansion 2025'],
-        },
-      ],
-    };
-
     const creativeConfig: CreativeDirectionConfig = {
       brandName: 'Test Brand',
       contradictions: [{ patternId: 'contradiction-1', action: 'explore', direction: 'Elevate premium cues via sustainability' }],
@@ -293,80 +250,6 @@ describe('Evolution phases 3-5 integration', () => {
       intuitions: [{ observation: 'Customers proudly share compost bins', context: 'Lifecycle emails', confidence: 0.7 }],
       primaryDirection: 'Own the joyful regenerative snack experience',
       keyThemes: ['Regenerative indulgence', 'Closed-loop joy'],
-    };
-
-    const research: ResearchBlitzOutput = {
-      brandName: 'Test Brand',
-      brandUrl: 'https://testbrand.com',
-      generatedAt: new Date().toISOString(),
-      brandAudit: {
-        positioning: 'Accessible better-for-you snacks',
-        visualIdentity: {
-          colors: ['#FF6600'],
-          typography: ['Arial'],
-          imagery: ['Fun lifestyle photography'],
-        },
-        messaging: {
-          tagline: 'Snack happy, live happy',
-          keyMessages: ['Tasty', 'Convenient'],
-          tone: 'Playful',
-        },
-        uxFindings: ['Single-page checkout'],
-        currentState: 'Growing DTC snack brand with playful imagery.',
-      },
-      competitors: [
-        {
-          name: 'FastSnack',
-          url: 'https://fastsnack.com',
-          positioning: 'Budget-friendly energy bars',
-          strengths: ['Low price'],
-          weaknesses: ['No sustainability story'],
-          differentiators: [],
-          pricing: 'Budget',
-          channels: ['Retail'],
-        },
-      ],
-      marketGaps: [
-        {
-          gap: 'Transparent compostable packaging leadership',
-          description: 'No competitor combines premium flavor with compostable packaging education.',
-          evidence: ['Competitive site audit'],
-          opportunitySize: 'large',
-          confidence: 0.8,
-        },
-      ],
-      contradictions: [
-        {
-          what: 'Premium claims vs discount-led visuals',
-          evidence: 'Homepage hero uses coupon pop-ups',
-          implication: 'Undercuts luxury perception',
-          severity: 'medium',
-        },
-      ],
-      customerLanguage: {
-        patterns: [
-          { phrase: 'Zero waste snacks', frequency: 18, context: 'Survey responses' },
-          { phrase: 'Indulgent but ethical', frequency: 12, context: 'Social listening' },
-        ],
-        sentiment: {
-          positive: ['Love the flavors'],
-          negative: ['Packaging feels generic'],
-          neutral: ['Ships monthly'],
-        },
-        painPoints: ['Hard to compost without instructions'],
-        desires: ['Treat myself without plastic guilt'],
-      },
-      culturalContext: [
-        {
-          trend: 'Compost pickup expansion',
-          description: 'Major cities adding curbside compost programs',
-          relevance: 'Customers ready for compost education',
-          source: 'EPA 2025 report',
-          date: '2025-08-01',
-        },
-      ],
-      confidence: 0.75,
-      sources: ['https://testbrand.com'],
     };
 
     const creativeDirector = new CreativeDirector();
@@ -394,4 +277,159 @@ describe('Evolution phases 3-5 integration', () => {
     expect(buildout.successMetrics.length).toBeGreaterThan(0);
     expect(buildout.evidenceTrail).toContainEqual(expect.stringContaining('Research conducted'));
   });
+
+  it('runs the full interactive flow for phases 3-5', async () => {
+    // 1. Mock Inquirer for Interactive Creative Direction
+    vi.mocked(inquirer.prompt).mockResolvedValueOnce({ action: 'explore' })
+      .mockResolvedValueOnce({ direction: 'Reframe as accessible premium' })
+      .mockResolvedValueOnce({ decision: 'pursue' })
+      .mockResolvedValueOnce({ reasoning: 'Strong market opportunity' })
+      .mockResolvedValueOnce({ idea: 'Launch eco-luxury line' })
+      .mockResolvedValueOnce({ rationale: 'Combines sustainability with premium' })
+      .mockResolvedValueOnce({ more: false })
+      .mockResolvedValueOnce({ observation: 'Market ready for disruption' })
+      .mockResolvedValueOnce({ context: 'Industry experience' })
+      .mockResolvedValueOnce({ confidence: 0.9 })
+      .mockResolvedValueOnce({ more: false })
+      .mockResolvedValueOnce({ primaryDirection: 'Become the accessible sustainable premium brand' })
+      .mockResolvedValueOnce({ keyThemes: ['sustainability', 'accessibility', 'quality'] });
+
+    // 2. Creative Direction (Phase 3) - Interactive
+    const creativeDirector = new CreativeDirector();
+    const direction = await creativeDirector.captureDirection(patterns, 'interactive');
+    expect(direction.primaryDirection).toBe('Become the accessible sustainable premium brand');
+    expect(direction.whiteSpaceDecisions).toHaveLength(1);
+    expect(direction.creativeLeaps[0]?.idea).toContain('eco-luxury');
+
+    // 3. Validation (Phase 4)
+    const validationEngine = new ValidationEngine();
+    const validation = await validationEngine.validate(research, direction);
+    expect(validation.recommendation).toBe('proceed');
+    expect(validation.overallConfidence).toBeGreaterThan(0.75);
+
+    // 4. Build-Out (Phase 5)
+    const buildOutGenerator = new BuildOutGenerator();
+    const buildout = await buildOutGenerator.generate(research, direction, validation);
+    expect(buildout.positioningFramework.statement).toContain('eco-conscious');
+    expect(buildout.messagingArchitecture.tagline).toBe('Indulgence that gives back');
+  });
 });
+
+const patterns: PatternPresentationOutput = {
+  brandName: 'Test Brand',
+  generatedAt: new Date().toISOString(),
+  contradictions: [
+    {
+      id: 'contradiction-1',
+      brandSays: 'We are the premium snack',
+      evidenceShows: 'Website emphasizes discounts heavily',
+      implication: 'Erodes premium perception',
+      severity: 'high',
+    },
+  ],
+  whiteSpace: [
+    {
+      id: 'gap-1',
+      description: 'Own compostable packaging leadership',
+      competitorFocus: 'Speed and price promotions',
+      untappedOpportunity: 'Make sustainability tangible through packaging loop',
+      evidence: ['Competitor sites lack compost messaging'],
+    },
+  ],
+  languageGaps: [
+    {
+      customersSay: 'I want indulgence without guilt',
+      brandSays: 'We are just convenient snacks',
+      gap: 'Emotionally resonant sustainability story missing',
+      examples: ['Customer survey 2025'],
+    },
+  ],
+  positioningMap: {
+    axis1: { name: 'Price', low: 'Budget', high: 'Premium' },
+    axis2: { name: 'Sustainability', low: 'Basic', high: 'Regenerative' },
+    brands: [],
+  },
+  inflectionPoints: [
+    {
+      type: 'trend',
+      description: 'Compost-at-home programs in major cities expanding',
+      timing: 'emerging',
+      impact: 'high',
+      evidence: ['NYC curbside compost expansion 2025'],
+    },
+  ],
+};
+
+const research: ResearchBlitzOutput = {
+  brandName: 'Test Brand',
+  brandUrl: 'https://testbrand.com',
+  generatedAt: new Date().toISOString(),
+  brandAudit: {
+    positioning: 'Accessible better-for-you snacks',
+    visualIdentity: {
+      colors: ['#FF6600'],
+      typography: ['Arial'],
+      imagery: ['Fun lifestyle photography'],
+    },
+    messaging: {
+      tagline: 'Snack happy, live happy',
+      keyMessages: ['Tasty', 'Convenient'],
+      tone: 'Playful',
+    },
+    uxFindings: ['Single-page checkout'],
+    currentState: 'Growing DTC snack brand with playful imagery.',
+  },
+  competitors: [
+    {
+      name: 'FastSnack',
+      url: 'https://fastsnack.com',
+      positioning: 'Budget-friendly energy bars',
+      strengths: ['Low price'],
+      weaknesses: ['No sustainability story'],
+      differentiators: [],
+      pricing: 'Budget',
+      channels: ['Retail'],
+    },
+  ],
+  marketGaps: [
+    {
+      gap: 'Transparent compostable packaging leadership',
+      description: 'No competitor combines premium flavor with compostable packaging education.',
+      evidence: ['Competitive site audit'],
+      opportunitySize: 'large',
+      confidence: 0.8,
+    },
+  ],
+  contradictions: [
+    {
+      what: 'Premium claims vs discount-led visuals',
+      evidence: 'Homepage hero uses coupon pop-ups',
+      implication: 'Undercuts luxury perception',
+      severity: 'medium',
+    },
+  ],
+  customerLanguage: {
+    patterns: [
+      { phrase: 'Zero waste snacks', frequency: 18, context: 'Survey responses' },
+      { phrase: 'Indulgent but ethical', frequency: 12, context: 'Social listening' },
+    ],
+    sentiment: {
+      positive: ['Love the flavors'],
+      negative: ['Packaging feels generic'],
+      neutral: ['Ships monthly'],
+    },
+    painPoints: ['Hard to compost without instructions'],
+    desires: ['Treat myself without plastic guilt'],
+  },
+  culturalContext: [
+    {
+      trend: 'Compost pickup expansion',
+      description: 'Major cities adding curbside compost programs',
+      relevance: 'Customers ready for compost education',
+      source: 'EPA 2025 report',
+      date: '2025-08-01',
+    },
+  ],
+  confidence: 0.75,
+  sources: ['https://testbrand.com'],
+};

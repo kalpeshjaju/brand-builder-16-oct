@@ -23,8 +23,6 @@ const PHASE_LABELS: Record<EvolutionPhase, string> = {
   buildout: 'Phase 5: Build-Out',
 };
 
-const PHASE_SEQUENCE: EvolutionPhase[] = ['research', 'patterns', 'direction', 'validation', 'buildout'];
-
 function slugifyBrandName(brand: string): string {
   return brand
     .toLowerCase()

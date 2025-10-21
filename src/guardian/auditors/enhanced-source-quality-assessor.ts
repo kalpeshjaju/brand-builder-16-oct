@@ -297,19 +297,19 @@ export class EnhancedSourceQualityAssessor {
       const matches = this.checkTierRules(source, rules);
 
       if (matches.length > 0) {
-        assessment.?.tier = tier;
-        assessment.?.score = this.calculateTierScore(matches);
-        assessment.?.matchedRules = matches.map(m => m.description);
-        assessment.?.confidence = this.calculateConfidence(matches, source);
+        assessment.tier = tier;
+        assessment.score = this.calculateTierScore(matches);
+        assessment.matchedRules = matches.map(m => m.description);
+        assessment.confidence = this.calculateConfidence(matches, source);
         break; // Stop at first matching tier
       }
     }
 
     // Identify issues
-    assessment.?.issues = this.identifySourceIssues(source, assessment);
+    assessment.issues = this.identifySourceIssues(source, assessment);
 
     // Generate recommendation
-    assessment.?.recommendation = this.generateRecommendation(assessment);
+    assessment.recommendation = this.generateRecommendation(assessment);
 
     return assessment;
   }
@@ -416,8 +416,8 @@ export class EnhancedSourceQualityAssessor {
     }
 
     // Check for low tier
-    if (assessment.?.tier >= 3) {
-      issues.push(`Low credibility tier (Tier ${assessment.?.tier})`);
+    if (assessment.tier >= 3) {
+      issues.push(`Low credibility tier (Tier ${assessment.tier})`);
     }
 
     // Check for suspicious patterns
@@ -466,15 +466,15 @@ export class EnhancedSourceQualityAssessor {
    * Generate recommendation based on assessment
    */
   private generateRecommendation(assessment: SourceAssessment): string {
-    switch (assessment.?.tier) {
+    switch (assessment.tier) {
       case 1:
         return 'Excellent source. Use with high confidence.';
 
       case 2:
-        if (assessment.?.issues.length === 0) {
+        if (assessment.issues.length === 0) {
           return 'Good source. Suitable for business documentation.';
         } else {
-          return `Good source but note: ${assessment.?.issues[0]}`;
+          return `Good source but note: ${assessment.issues[0]}`;
         }
 
       case 3:
@@ -539,8 +539,8 @@ export class EnhancedSourceQualityAssessor {
     let totalScore = 0;
 
     for (const assessment of assessments) {
-      tierCounts[assessment.?.tier]++;
-      totalScore += assessment.?.score;
+      tierCounts[assessment.tier]++;
+      totalScore += assessment.score;
     }
 
     const averageTier = assessments.reduce((sum, a) => sum + a.tier, 0) / assessments.length;
@@ -583,30 +583,30 @@ export class EnhancedSourceQualityAssessor {
     const lines: string[] = [];
 
     lines.push(`## Source Assessment\n`);
-    lines.push(`- **URL**: ${assessment.?.url || 'Not provided'}`);
-    lines.push(`- **Domain**: ${assessment.?.domain || 'N/A'}`);
-    lines.push(`- **Tier**: ${assessment.?.tier} (${tierLabels[assessment.?.tier]})`);
-    lines.push(`- **Score**: ${(assessment.?.score * 100).toFixed(0)}%`);
-    lines.push(`- **Confidence**: ${(assessment.?.confidence * 100).toFixed(0)}%\n`);
+    lines.push(`- **URL**: ${assessment.url || 'Not provided'}`);
+    lines.push(`- **Domain**: ${assessment.domain || 'N/A'}`);
+    lines.push(`- **Tier**: ${assessment.tier} (${tierLabels[assessment.tier]})`);
+    lines.push(`- **Score**: ${(assessment.score * 100).toFixed(0)}%`);
+    lines.push(`- **Confidence**: ${(assessment.confidence * 100).toFixed(0)}%\n`);
 
-    if (assessment.?.matchedRules.length > 0) {
+    if (assessment.matchedRules.length > 0) {
       lines.push(`### Matched Criteria`);
-      for (const rule of assessment.?.matchedRules) {
+      for (const rule of assessment.matchedRules) {
         lines.push(`- ${rule}`);
       }
       lines.push('');
     }
 
-    if (assessment.?.issues.length > 0) {
+    if (assessment.issues.length > 0) {
       lines.push(`### ⚠️ Issues`);
-      for (const issue of assessment.?.issues) {
+      for (const issue of assessment.issues) {
         lines.push(`- ${issue}`);
       }
       lines.push('');
     }
 
     lines.push(`### Recommendation`);
-    lines.push(assessment.?.recommendation);
+    lines.push(assessment.recommendation);
 
     return lines.join('\n');
   }

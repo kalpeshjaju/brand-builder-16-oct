@@ -16,6 +16,7 @@
   },
   "homepage": "https://github.com/kalpeshjaju/brand-builder-16-oct#readme",
   "scripts": {
+    "postinstall": "pip3 install -r src/oracle/requirements.txt",
     "dev": "tsx src/cli/index.ts",
     "build": "tsc",
     "type-check": "tsc --noEmit",
