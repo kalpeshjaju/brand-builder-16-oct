@@ -103,14 +103,21 @@ export class EvolutionOrchestrator {
       throw new CommandExecutionError(`Unknown evolution phase: ${targetPhase}`);
     }
 
-    for (let index = 0; index <= targetIndex; index++) {
-      const phase = PHASE_ORDER[index];
-      const shouldForce = options?.forceTarget && phase === targetPhase;
-      if (!this.isPhaseComplete(phase) || shouldForce) {
-        await this.executePhase(phase);
-      } else {
-        this.logPhaseAlreadyComplete(phase);
+    const spinner = ora('Starting evolution...').start();
+    try {
+      for (let index = 0; index <= targetIndex; index++) {
+        const phase = PHASE_ORDER[index];
+        const shouldForce = options?.forceTarget && phase === targetPhase;
+        if (!this.isPhaseComplete(phase) || shouldForce) {
+          await this.executePhase(phase, spinner);
+        } else {
+          this.logPhaseAlreadyComplete(phase);
+        }
       }
+      spinner.stop();
+    } catch (error) {
+      spinner.stop();
+      throw error;
     }
 
     await this.saveState();
@@ -142,22 +149,22 @@ export class EvolutionOrchestrator {
   /**
    * Execute a single phase by delegating to the underlying implementation
    */
-  private async executePhase(phase: EvolutionPhase): Promise<void> {
+  private async executePhase(phase: EvolutionPhase, spinner?: ora.Ora): Promise<void> {
     switch (phase) {
       case 'research':
-        await this.runPhase1();
+        await this.runPhase1(spinner);
         break;
       case 'patterns':
-        await this.runPhase2();
+        await this.runPhase2(spinner);
         break;
       case 'direction':
         await this.runPhase3();
         break;
       case 'validation':
-        await this.runPhase4();
+        await this.runPhase4(spinner);
         break;
       case 'buildout':
-        await this.runPhase5();
+        await this.runPhase5(spinner);
         break;
       default:
         throw new CommandExecutionError(`Unsupported evolution phase requested: ${phase}`);
@@ -181,10 +188,9 @@ export class EvolutionOrchestrator {
   /**
    * Phase 1: Research Blitz
    */
-  private async runPhase1(): Promise<void> {
-    console.log(chalk.bold('\n📊 Phase 1: Research Blitz\n'));
-
-    const spinner = ora('Conducting brand audit...').start();
+  private async runPhase1(spinner?: ora.Ora): Promise<void> {
+    const phaseSpinner = spinner || ora('Conducting brand audit...').start();
+    phaseSpinner.text = 'Phase 1: Research Blitz - Starting...';
 
     try {
       const blitzConfig: ResearchBlitzConfig = {
@@ -194,12 +200,14 @@ export class EvolutionOrchestrator {
       };
 
       const blitz = new ResearchBlitz(blitzConfig);
-      const research = await blitz.execute();
+      const research = await blitz.execute((message) => {
+        phaseSpinner.text = `Phase 1: Research Blitz - ${message}`;
+      });
 
       this.state.outputs.research = research;
       this.markPhaseComplete('research');
 
-      spinner.succeed('Research blitz complete');
+      phaseSpinner.succeed('Phase 1: Research Blitz complete');
 
       // Save research output
       await this.saveOutput('01-research-blitz.json', research);
@@ -210,7 +218,7 @@ export class EvolutionOrchestrator {
     } catch (error) {
       const normalizedError = error instanceof Error ? error : new Error(String(error));
       const errorMessage = normalizedError.message;
-      spinner.fail(`Research blitz failed for ${this.config.brandName}: ${errorMessage}`);
+      phaseSpinner.fail(`Research blitz failed for ${this.config.brandName}: ${errorMessage}`);
       logger.error(`Phase 'research' failed for ${this.config.brandName}`, normalizedError);
       throw new CommandExecutionError(
         `Phase 'research' failed for ${this.config.brandName}`,
@@ -222,10 +230,9 @@ export class EvolutionOrchestrator {
   /**
    * Phase 2: Pattern Presentation
    */
-  private async runPhase2(): Promise<void> {
-    console.log(chalk.bold('\n🔍 Phase 2: Pattern Presentation\n'));
-
-    const spinner = ora('Analyzing patterns...').start();
+  private async runPhase2(spinner?: ora.Ora): Promise<void> {
+    const phaseSpinner = spinner || ora('Analyzing patterns...').start();
+    phaseSpinner.text = 'Phase 2: Pattern Presentation - Analyzing patterns...';
 
     try {
       const research = this.state.outputs.research!;
@@ -235,7 +242,7 @@ export class EvolutionOrchestrator {
       this.state.outputs.patterns = patterns;
       this.markPhaseComplete('patterns');
 
-      spinner.succeed('Pattern analysis complete');
+      phaseSpinner.succeed('Phase 2: Pattern Presentation complete');
 
       // Save patterns
       await this.saveOutput('02-patterns.json', patterns);
@@ -250,7 +257,7 @@ export class EvolutionOrchestrator {
     } catch (error) {
       const normalizedError = error instanceof Error ? error : new Error(String(error));
       const errorMessage = normalizedError.message;
-      spinner.fail(`Pattern presentation failed for ${this.config.brandName}: ${errorMessage}`);
+      phaseSpinner.fail(`Pattern presentation failed for ${this.config.brandName}: ${errorMessage}`);
       logger.error(`Phase 'patterns' failed for ${this.config.brandName}`, normalizedError);
       throw new CommandExecutionError(
         `Phase 'patterns' failed for ${this.config.brandName}`,
@@ -297,10 +304,9 @@ export class EvolutionOrchestrator {
   /**
    * Phase 4: Validation
    */
-  private async runPhase4(): Promise<void> {
-    console.log(chalk.bold('\n✅ Phase 4: Validation\n'));
-
-    const spinner = ora('Validating creative direction...').start();
+  private async runPhase4(spinner?: ora.Ora): Promise<void> {
+    const phaseSpinner = spinner || ora('Validating creative direction...').start();
+    phaseSpinner.text = 'Phase 4: Validation - Validating creative direction...';
 
     try {
       const research = this.state.outputs.research!;
@@ -312,7 +318,7 @@ export class EvolutionOrchestrator {
       this.state.outputs.validation = validation;
       this.markPhaseComplete('validation');
 
-      spinner.succeed('Validation complete');
+      phaseSpinner.succeed('Phase 4: Validation complete');
 
       // Save validation
       await this.saveOutput('04-validation.json', validation);
@@ -334,7 +340,7 @@ export class EvolutionOrchestrator {
     } catch (error) {
       const normalizedError = error instanceof Error ? error : new Error(String(error));
       const errorMessage = normalizedError.message;
-      spinner.fail(`Validation failed for ${this.config.brandName}: ${errorMessage}`);
+      phaseSpinner.fail(`Validation failed for ${this.config.brandName}: ${errorMessage}`);
       logger.error(`Phase 'validation' failed for ${this.config.brandName}`, normalizedError);
       throw new CommandExecutionError(
         `Phase 'validation' failed for ${this.config.brandName}`,
@@ -346,10 +352,9 @@ export class EvolutionOrchestrator {
   /**
    * Phase 5: Build-Out
    */
-  private async runPhase5(): Promise<void> {
-    console.log(chalk.bold('\n🏗️  Phase 5: Build-Out\n'));
-
-    const spinner = ora('Generating strategy...').start();
+  private async runPhase5(spinner?: ora.Ora): Promise<void> {
+    const phaseSpinner = spinner || ora('Generating strategy...').start();
+    phaseSpinner.text = 'Phase 5: Build-Out - Generating strategy...';
 
     try {
       const research = this.state.outputs.research!;
@@ -362,7 +367,7 @@ export class EvolutionOrchestrator {
       this.state.outputs.buildout = buildout;
       this.markPhaseComplete('buildout');
 
-      spinner.succeed('Build-out complete');
+      phaseSpinner.succeed('Phase 5: Build-Out complete');
 
       // Save buildout
       await this.saveOutput('05-buildout.json', buildout);
@@ -379,7 +384,7 @@ export class EvolutionOrchestrator {
     } catch (error) {
       const normalizedError = error instanceof Error ? error : new Error(String(error));
       const errorMessage = normalizedError.message;
-      spinner.fail(`Build-out failed for ${this.config.brandName}: ${errorMessage}`);
+      phaseSpinner.fail(`Build-out failed for ${this.config.brandName}: ${errorMessage}`);
       logger.error(`Phase 'buildout' failed for ${this.config.brandName}`, normalizedError);
       throw new CommandExecutionError(
         `Phase 'buildout' failed for ${this.config.brandName}`,

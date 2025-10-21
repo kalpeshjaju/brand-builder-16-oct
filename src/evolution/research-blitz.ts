@@ -42,31 +42,37 @@ export class ResearchBlitz {
   /**
    * Run the complete research blitz
    */
-  async execute(): Promise<ResearchBlitzOutput> {
+  async execute(onProgress?: (message: string) => void): Promise<ResearchBlitzOutput> {
     logger.info('Starting research blitz', { brand: this.config.brandName });
 
     try {
       // Phase 1.1: Brand Audit
+      onProgress?.('Conducting brand audit...');
       logger.info('Conducting brand audit...');
       const brandAudit = await this.conductBrandAudit();
 
       // Phase 1.2: Competitor Analysis
+      onProgress?.('Analyzing competitors...');
       logger.info('Analyzing competitors...');
       const competitors = await this.analyzeCompetitors();
 
       // Phase 1.3: Market Gap Analysis
+      onProgress?.('Identifying market gaps...');
       logger.info('Identifying market gaps...');
       const marketGaps = await this.identifyMarketGaps(brandAudit, competitors);
 
       // Phase 1.4: Contradiction Detection
+      onProgress?.('Detecting contradictions...');
       logger.info('Detecting contradictions...');
       const contradictions = await this.detectContradictions(brandAudit);
 
       // Phase 1.5: Customer Language Mining
+      onProgress?.('Mining customer language...');
       logger.info('Mining customer language...');
       const customerLanguage = await this.mineCustomerLanguage();
 
       // Phase 1.6: Cultural Context
+      onProgress?.('Gathering cultural context...');
       logger.info('Gathering cultural context...');
       const culturalContext = await this.gatherCulturalContext();
 
