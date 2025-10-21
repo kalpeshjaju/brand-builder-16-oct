@@ -109,54 +109,54 @@ export class FactTripleExtractor {
 
       if (patternStr.includes('has|have|serves')) {
         // Numeric possession/service pattern
-        triple.subject = this.cleanText(match[1]);
-        triple.predicate = match[2];
-        triple.value = this.parseNumericValue(match[3]);
+        triple.subject = this.cleanText(match[1] || '');
+        triple.predicate = match[2] || '';
+        triple.value = this.parseNumericValue(match[3] || '');
         triple.type = 'numeric';
         if (match[4]) {
           triple.predicate += ' ' + match[4]; // Add units
         }
       } else if (patternStr.includes('%')) {
         // Percentage pattern
-        triple.subject = this.cleanText(match[2]);
+        triple.subject = this.cleanText(match[2] || '');
         triple.predicate = 'percentage';
-        triple.value = this.parseNumericValue(match[1]);
+        triple.value = this.parseNumericValue(match[1] || '');
         triple.type = 'numeric';
       } else if (patternStr.includes('better|worse')) {
         // Comparative pattern
-        triple.subject = this.cleanText(match[1]);
-        triple.predicate = 'is ' + match[2] + ' than';
-        triple.value = this.cleanText(match[3]);
+        triple.subject = this.cleanText(match[1] || '');
+        triple.predicate = 'is ' + (match[2] || '') + ' than';
+        triple.value = this.cleanText(match[3] || '');
         triple.type = 'comparative';
       } else if (patternStr.includes('#')) {
         // Market position pattern
-        triple.subject = this.cleanText(match[1]);
-        triple.predicate = 'rank in ' + this.cleanText(match[3]);
-        triple.value = parseInt(match[2]);
+        triple.subject = this.cleanText(match[1] || '');
+        triple.predicate = 'rank in ' + this.cleanText(match[3] || '');
+        triple.value = parseInt(match[2] || '0');
         triple.type = 'numeric';
       } else if (patternStr.includes('grew|increased')) {
         // Growth pattern
-        triple.subject = this.cleanText(match[1]);
-        triple.predicate = match[2];
-        triple.value = this.parseNumericValue(match[3]);
+        triple.subject = this.cleanText(match[1] || '');
+        triple.predicate = match[2] || '';
+        triple.value = this.parseNumericValue(match[3] || '');
         triple.type = 'numeric';
       } else if (patternStr.includes('since|in|from')) {
         // Temporal pattern
-        triple.subject = this.cleanText(match[1]);
-        triple.predicate = match[2];
-        triple.value = parseInt(match[3]);
+        triple.subject = this.cleanText(match[1] || '');
+        triple.predicate = match[2] || '';
+        triple.value = parseInt(match[3] || '0');
         triple.type = 'temporal';
       } else if (patternStr.includes('\\$')) {
         // Revenue/value pattern
         triple.subject = 'value';
         triple.predicate = 'equals';
-        triple.value = this.parseCurrencyValue(match[1], match[2]);
+        triple.value = this.parseCurrencyValue(match[1] || '', match[2] || '');
         triple.type = 'numeric';
       } else if (patternStr.includes('rated|scored')) {
         // Rating pattern
-        triple.subject = this.cleanText(match[1]);
-        triple.predicate = match[2];
-        triple.value = parseFloat(match[3]);
+        triple.subject = this.cleanText(match[1] || '');
+        triple.predicate = match[2] || '';
+        triple.value = parseFloat(match[3] || '0');
         triple.type = 'numeric';
         if (match[4]) {
           triple.predicate += ' out of ' + match[4];
@@ -165,13 +165,13 @@ export class FactTripleExtractor {
         // Customer base pattern
         triple.subject = 'company';
         triple.predicate = 'has';
-        triple.value = this.parseNumericValue(match[1]);
+        triple.value = this.parseNumericValue(match[1] || '');
         triple.type = 'numeric';
       } else if (patternStr.includes('years?|months?')) {
         // Time-based pattern
-        triple.subject = this.cleanText(match[3]);
+        triple.subject = this.cleanText(match[3] || '');
         triple.predicate = 'duration';
-        triple.value = parseInt(match[1]) + ' ' + match[2];
+        triple.value = (parseInt(match[1] || '0')) + ' ' + (match[2] || '');
         triple.type = 'temporal';
       }
 

@@ -29,7 +29,7 @@ export class WorkspaceManager {
 
   public async ensureBrandWorkspace(): Promise<void> {
     logger.info(`Ensuring workspace exists for brand: ${this.brandName}`);
-    await FileSystemUtils.ensureDirectoryExists(this.brandRoot);
+    await FileSystemUtils.ensureDir(this.brandRoot);
 
     const subfolders: ('inputs' | 'outputs' | 'documents' | 'resources' | 'logs' | 'db')[] = [
       'inputs',
@@ -41,7 +41,7 @@ export class WorkspaceManager {
     ];
 
     for (const folder of subfolders) {
-      await FileSystemUtils.ensureDirectoryExists(this.getPath(folder));
+      await FileSystemUtils.ensureDir(this.getPath(folder));
     }
     logger.info(`Workspace ready at: ${this.brandRoot}`);
   }

@@ -1,4 +1,5 @@
 import type {
+  ResearchBlitzOutput,
   PatternPresentationOutput,
   CreativeDirectionOutput,
   ValidationOutput,

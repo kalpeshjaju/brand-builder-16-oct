@@ -68,7 +68,7 @@ export class GuardianGatesAgent implements IAgent {
         : { name: 'Readiness', status: 'fail', reason: 'Missing required sections' };
 
       const gates = [g1, g2, g3, g4];
-      const numeric = gates.map(g => g.status === 'pass' ? 1 : g.status === 'warn' ? 0.7 : 0).reduce((a,b)=>a+b,0) / gates.length;
+      const numeric: number = gates.map(g => g.status === 'pass' ? 1 : g.status === 'warn' ? 0.7 : 0).reduce((a: number, b: number) => a + b, 0) / gates.length;
       const score = Math.round(numeric * 100);
       const overall: 'pass' | 'fail' = gates.some(g => g.status === 'fail') ? 'fail' : 'pass';
 

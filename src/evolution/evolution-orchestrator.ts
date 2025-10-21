@@ -109,6 +109,9 @@ export class EvolutionOrchestrator {
     try {
       for (let index = 0; index <= targetIndex; index++) {
         const phase = PHASE_ORDER[index];
+        if (!phase) {
+          throw new Error(`Invalid phase index: ${index}`);
+        }
         const shouldForce = options?.forceTarget && phase === targetPhase;
         if (!this.isPhaseComplete(phase) || shouldForce) {
           await this.executePhase(phase, spinner);

@@ -215,7 +215,7 @@ async function runPhaseCommand(phase: EvolutionPhase, options: {
   try {
     const resolvedOutputDir = options.output ? resolveOutputDirectory(options.brand, options.output) : undefined;
     const existingState = await loadExistingState(options.brand, resolvedOutputDir);
-    const brandUrl = await resolveBrandUrl(options.brand, options.url, options.output, existingState);
+    const brandUrl = await resolveBrandUrl(options.brand, options.url, existingState);
     const creativeDirectionConfig = await loadCreativeConfig(options.configPath);
     const competitorUrls = deriveCompetitorUrls(options.competitors, existingState);
 

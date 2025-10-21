@@ -500,7 +500,7 @@ export class EnhancedSourceQualityAssessor {
     } catch {
       // Try basic extraction
       const match = url.match(/(?:https?:\/\/)?(?:www\.)?([^\/\?]+)/i);
-      return match ? match[1].toLowerCase() : undefined;
+      return match?.[1]?.toLowerCase();
     }
   }
 
@@ -539,7 +539,8 @@ export class EnhancedSourceQualityAssessor {
     let totalScore = 0;
 
     for (const assessment of assessments) {
-      tierCounts[assessment.tier]++;
+      const tier = assessment.tier;
+      tierCounts[tier] = (tierCounts[tier] || 0) + 1;
       totalScore += assessment.score;
     }
 
@@ -549,11 +550,11 @@ export class EnhancedSourceQualityAssessor {
     const recommendations: string[] = [];
 
     // Generate overall recommendations
-    if (tierCounts[4] > assessments.length * 0.3) {
+    if ((tierCounts[4] || 0) > assessments.length * 0.3) {
       recommendations.push('High proportion of low-credibility sources. Seek more authoritative references.');
     }
 
-    if (tierCounts[1] < assessments.length * 0.2) {
+    if ((tierCounts[1] || 0) < assessments.length * 0.2) {
       recommendations.push('Limited high-credibility sources. Add peer-reviewed or official sources.');
     }
 
@@ -566,10 +567,10 @@ export class EnhancedSourceQualityAssessor {
       summary: {
         averageTier,
         averageScore,
-        tier1Count: tierCounts[1],
-        tier2Count: tierCounts[2],
-        tier3Count: tierCounts[3],
-        tier4Count: tierCounts[4],
+        tier1Count: tierCounts[1] || 0,
+        tier2Count: tierCounts[2] || 0,
+        tier3Count: tierCounts[3] || 0,
+        tier4Count: tierCounts[4] || 0,
         recommendations
       }
     };

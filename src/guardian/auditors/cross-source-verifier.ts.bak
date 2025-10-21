@@ -134,7 +134,10 @@ Provide analysis in JSON:
 }`;
 
     try {
-      const response = await this.llm.prompt(prompt, { temperature: 0.3 });
+      const response = await this.llm.generateResponse({
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3, // Low temperature for analytical task
+      });
 
       const analysis = JSON.parse(this.extractJSON(response.content));
 
@@ -367,7 +370,10 @@ Output JSON array of contradictions:
 ]`;
 
     try {
-      const response = await this.llm.prompt(prompt, { temperature: 0.3 });
+      const response = await this.llm.generateResponse({
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+      });
 
       const contradictions = JSON.parse(this.extractJSON(response.content));
       return Array.isArray(contradictions) ? contradictions : [];

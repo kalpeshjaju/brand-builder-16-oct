@@ -1,5 +1,5 @@
 import type { IAgent, IAgentContext, IAgentResult } from '../IAgent.js';
-import type { AssetMap } from '../../types/docs-types.js';
+import type { AssetMap, AssetMapItem } from '../../types/docs-types.js';
 
 export class AssetMapAgent implements IAgent {
   public readonly name = 'docs.asset-map';
@@ -12,11 +12,11 @@ export class AssetMapAgent implements IAgent {
 
   async execute(context: IAgentContext): Promise<IAgentResult<AssetMap>> {
     try {
-      const items = [
-        { type: 'visual', name: 'Logo (SVG/PNG)', status: 'present' },
-        { type: 'visual', name: 'Color Palette', status: 'present' },
-        { type: 'digital', name: 'Website Hero Banner', status: 'outdated' },
-        { type: 'service', name: 'Customer Support Script', status: 'missing' },
+      const items: AssetMapItem[] = [
+        { type: 'visual' as const, name: 'Logo (SVG/PNG)', status: 'present' as const },
+        { type: 'visual' as const, name: 'Color Palette', status: 'present' as const },
+        { type: 'digital' as const, name: 'Website Hero Banner', status: 'outdated' as const },
+        { type: 'service' as const, name: 'Customer Support Script', status: 'missing' as const },
       ];
       const data: AssetMap = {
         brandName: context.brandName,

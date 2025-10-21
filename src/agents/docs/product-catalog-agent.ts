@@ -1,5 +1,5 @@
 import type { IAgent, IAgentContext, IAgentResult } from '../IAgent.js';
-import type { ProductCatalog } from '../../types/docs-types.js';
+import type { ProductCatalog, ProductCatalogItem } from '../../types/docs-types.js';
 
 export class ProductCatalogAgent implements IAgent {
   public readonly name = 'docs.product-catalog';
@@ -13,21 +13,21 @@ export class ProductCatalogAgent implements IAgent {
   async execute(context: IAgentContext): Promise<IAgentResult<ProductCatalog>> {
     try {
       // Merge with workspace JSON if present
-      const items = [
+      const items: ProductCatalogItem[] = [
         {
           sku: 'CAT-001',
           name: 'Medjoul Dates',
           category: 'Dates',
-          specs: { origin: 'Saudi', grade: 'Premium' },
-          nutrition: { energy: '277 kcal/100g' },
+          specs: { origin: 'Saudi', grade: 'Premium' } as Record<string, string>,
+          nutrition: { energy: '277 kcal/100g' } as Record<string, string>,
           priceRange: '₹499–₹1299',
         },
         {
           sku: 'NUT-101',
           name: 'Macadamia Nuts',
           category: 'Nuts',
-          specs: { origin: 'Australia', roast: 'Light' },
-          nutrition: { fat: '76 g/100g' },
+          specs: { origin: 'Australia', roast: 'Light' } as Record<string, string>,
+          nutrition: { fat: '76 g/100g' } as Record<string, string>,
           priceRange: '₹699–₹1599',
         },
       ];

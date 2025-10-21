@@ -32,7 +32,7 @@ export class IngestionService {
   private researchDB: ResearchDatabase | null;
 
   constructor(config: IngestionServiceConfig = {}) {
-    this.oracle = config.oracleClient || new OracleClient({ endpoint: process.env.ORACLE_ENDPOINT || 'http://localhost:8080' });
+    this.oracle = config.oracleClient || new OracleClient();
     this.researchDB = config.brandConfig ? new ResearchDatabase(config.brandConfig) : null;
   }
 
@@ -181,8 +181,8 @@ export class IngestionService {
 
       logger.info('Indexed in ORACLE', {
         fileId: result.fileId,
-        indexed: response.indexed,
-        chunks: response.chunkStats.totalChunks,
+        id: response.id,
+        status: response.status,
       });
     } catch (error) {
       logger.error('ORACLE indexing failed', {
@@ -368,11 +368,10 @@ export class IngestionService {
       logger.info('Retrieved context from ORACLE', {
         brand,
         query: query.substring(0, 50),
-        tokenCount: response.tokenCount,
-        sources: response.sources.length,
+        contextLength: response.length,
       });
 
-      return response.context;
+      return response;
     } catch (error) {
       logger.error('Context retrieval failed', {
         brand,
