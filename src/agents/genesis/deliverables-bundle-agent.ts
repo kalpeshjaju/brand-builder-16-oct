@@ -1,5 +1,6 @@
 import type { IAgent, IAgentContext, IAgentResult } from '../IAgent.js';
 import type { BrandConfiguration } from '../../types/brand-types.js';
+import { customizeDeliverables, countDeliverables } from '../../genesis/config/deliverables-framework.js';
 
 export class DeliverablesBundleAgent implements IAgent {
   public readonly name = 'genesis.deliverables-bundle';
@@ -27,4 +28,3 @@ export class DeliverablesBundleAgent implements IAgent {
     }
   }
 }
-

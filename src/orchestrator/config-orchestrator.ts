@@ -9,7 +9,7 @@ export class ConfigOrchestrator {
 
   async runFromFile(
     configPath: string,
-    options?: { include?: Set<string>; overrideUseOracle?: boolean }
+    options?: { include?: Set<string>; overrideUseOracle?: boolean; initialResults?: Record<string, unknown> }
   ): Promise<Record<string, IAgentResult>> {
     const buf = await readFile(configPath, 'utf-8');
     const raw = JSON.parse(buf);
@@ -26,7 +26,7 @@ export class ConfigOrchestrator {
       brandUrl: this.context.brandUrl,
       competitorUrls: this.context.competitorUrls ?? [],
       useOracle: options?.overrideUseOracle ?? (config.features?.useOracle ?? false),
-      results: {},
+      results: (options?.initialResults as any) || {},
     };
 
     for (const stage of config.stages) {

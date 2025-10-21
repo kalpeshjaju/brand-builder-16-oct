@@ -93,12 +93,25 @@ async function runWorkflow(options: {
       }
     }
 
+    // Preload existing outputs into initial results so dependent agents can run under --resume
+    const initialResults: Record<string, unknown> = {};
+    for (const [agent, file] of Object.entries(primaryOutput)) {
+      const fp = path.join(outDir, file);
+      // Only preload known upstream phases by file presence
+      if (await FileSystemUtils.fileExists(fp)) {
+        try {
+          const data = await FileSystemUtils.readJSON(fp);
+          initialResults[agent] = data;
+        } catch {}
+      }
+    }
+
     const orchestrator = new ConfigOrchestrator({
       brandName: options.brand,
       brandUrl: options.url,
       competitorUrls: options.competitors || [],
     });
-    const results = await orchestrator.runFromFile(cfgPath, { include });
+    const results = await orchestrator.runFromFile(cfgPath, { include, overrideUseOracle: !!(options as any)['useOracle'], initialResults });
 
     // Save Research Blitz output
     const r1 = results['evolution.research-blitz'];
