@@ -294,6 +294,104 @@ Potential additions:
 
 ---
 
+## HTML File Support (NEW!)
+
+**Added**: 2025-10-22
+
+### Ingest Large HTML Files
+
+The system now supports **HTML files with automatic chunking** for large documents (100+ pages):
+
+```bash
+# Ingest HTML file with automatic chunking
+npm run dev ingest -- \
+  --file flyberry-act1.html \
+  --brand Flyberry \
+  --chunk-size 2000 \
+  --chunk-overlap 200
+```
+
+**Features**:
+- ✅ **Auto-chunking**: Large files split into manageable chunks (default: 2000 chars)
+- ✅ **Smart splitting**: Preserves sections, splits by headings then sentences
+- ✅ **Overlap**: 200-char overlap between chunks for context continuity
+- ✅ **Metadata extraction**: Extracts title, meta tags from HTML
+- ✅ **Clean text**: Removes scripts, styles, preserves content
+
+**Example Output**:
+```
+✔ Document ingested successfully!
+
+📄 Ingestion Summary:
+
+  File: flyberry-act1-v2-final-2025-10-15.html
+  Type: HTML
+  Brand: Flyberry
+  Chunks: 15
+  Total Characters: 28,547
+
+📋 Document IDs (first 3):
+
+  - flyberry-act1-v2-final-2025-10-15.html-chunk-1-a3b4c5d6
+  - flyberry-act1-v2-final-2025-10-15.html-chunk-2-e7f8g9h0
+  - flyberry-act1-v2-final-2025-10-15.html-chunk-3-i1j2k3l4
+  ... and 12 more
+
+✅ Ready for semantic search!
+```
+
+### How Chunking Works
+
+**For 100-page HTML (30,000+ characters)**:
+
+1. **Parse HTML** - Extract clean text, preserve structure
+2. **Split by sections** - Using headings (h1-h6) as boundaries
+3. **Split large sections** - If section > chunk_size, split by sentences
+4. **Add overlap** - 200 chars from end of previous chunk
+5. **Index all chunks** - Each gets unique ID with metadata
+
+**Benefits**:
+- ✅ No embedding size limit errors
+- ✅ Better semantic search (smaller, focused chunks)
+- ✅ Context preserved (overlaps maintain continuity)
+- ✅ Easy editing (update specific chunks, not whole file)
+
+### Workflow: Ingest → Query → Edit
+
+```bash
+# 1. Ingest large HTML file
+npm run dev ingest -- --file brand-package.html --brand MyBrand
+
+# 2. List what was indexed
+npm run dev chroma list -- --limit 20
+
+# 3. Find chunk with wrong data
+# ID: brand-package.html-chunk-8-xyz123
+
+# 4. Update that chunk
+npm run dev chroma update -- \
+  --id "brand-package.html-chunk-8-xyz123" \
+  --document "Corrected section 8 text..." \
+  --metadata '{"corrected":true,"section":8}'
+
+# 5. Verify
+npm run dev chroma list -- --limit 20
+```
+
+### Supported File Types
+
+| Format | Extension | Chunking | Status |
+|--------|-----------|----------|--------|
+| HTML | `.html` | ✅ Automatic | ✅ Production |
+| PDF | `.pdf` | ❌ Manual | ✅ Production |
+| DOCX | `.docx` | ❌ Manual | ✅ Production |
+| Markdown | `.md` | ❌ Manual | ✅ Production |
+| Text | `.txt` | ❌ Manual | ✅ Production |
+
+**Note**: Only HTML parser currently has automatic chunking. Other formats may be added in future versions.
+
+---
+
 **Last Updated**: 2025-10-22
-**Version**: 1.2.0
+**Version**: 1.2.1 (HTML Support)
 **Status**: ✅ Production Ready

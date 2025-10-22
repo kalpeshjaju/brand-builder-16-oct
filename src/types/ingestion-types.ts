@@ -32,6 +32,7 @@ export interface ProcessedContent {
     headings?: string[];
     tables?: unknown[];
     lists?: string[][];
+    metadata?: Record<string, string>;
   };
   cleaned: string; // Cleaned and normalized
 }

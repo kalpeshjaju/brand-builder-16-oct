@@ -3,6 +3,7 @@
 export { PDFParser } from './pdf-parser.js';
 export { DOCXParser } from './docx-parser.js';
 export { TextParser } from './text-parser.js';
+export { HTMLParser } from './html-parser.js';
 export { ReviewsParser } from './reviews-parser.js';
 export { TablesParser } from './tables-parser.js';
 export { PPTXParser } from './pptx-parser.js';
@@ -12,6 +13,7 @@ export { OCRParser } from './ocr-parser.js';
 import { PDFParser } from './pdf-parser.js';
 import { DOCXParser } from './docx-parser.js';
 import { TextParser } from './text-parser.js';
+import { HTMLParser } from './html-parser.js';
 import { ReviewsParser } from './reviews-parser.js';
 import { TablesParser } from './tables-parser.js';
 import { PPTXParser } from './pptx-parser.js';
@@ -31,6 +33,8 @@ export function getParser(format: FileFormat): Parser | null {
     case 'txt':
     case 'md':
       return new TextParser();
+    case 'html':
+      return new HTMLParser();
     case 'json':
       return new ReviewsParser();
     case 'csv':
@@ -48,6 +52,7 @@ export function getAllParsers(): Parser[] {
     new PDFParser(),
     new DOCXParser(),
     new TextParser(),
+    new HTMLParser(),
     new ReviewsParser(),
     new TablesParser(),
     new PPTXParser(),
