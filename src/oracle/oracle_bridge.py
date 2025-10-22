@@ -46,6 +46,35 @@ def search(data):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+def update_document(data):
+    """Updates an existing document in the collection."""
+    try:
+        collection.update(
+            ids=[data['id']],
+            documents=[data['document']],
+            metadatas=[data['metadata']]
+        )
+        return {"status": "success", "id": data['id']}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+def delete_document(data):
+    """Deletes a document from the collection."""
+    try:
+        collection.delete(ids=[data['id']])
+        return {"status": "success", "id": data['id']}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+def list_documents(data):
+    """Lists all documents in the collection (with optional limit)."""
+    try:
+        limit = data.get('limit', 10)
+        results = collection.get(limit=limit)
+        return {"status": "success", "results": results}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 # --- Main Loop ---
 
 def main():
@@ -60,6 +89,12 @@ def main():
                 response = add_document(data)
             elif command == "search":
                 response = search(data)
+            elif command == "update":
+                response = update_document(data)
+            elif command == "delete":
+                response = delete_document(data)
+            elif command == "list":
+                response = list_documents(data)
             else:
                 response = {"status": "error", "message": "Unknown command"}
 

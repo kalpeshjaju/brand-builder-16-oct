@@ -53,6 +53,11 @@ import { reportCommand } from './commands/report.js';
 import { setupCommand } from './commands/setup.js';
 import { useCommand } from './commands/use.js';
 import { packageCommand } from './commands/package.js';
+import {
+  updateDocumentCommand,
+  deleteDocumentCommand,
+  listDocumentsCommand,
+} from './commands/chroma.js';
 
 // Load environment variables
 config();
@@ -335,6 +340,34 @@ program
   .command('health')
   .description('Validate environment, API connectivity, and integrations')
   .action(healthCommand);
+
+// ChromaDB command group
+const chromaCmd = program
+  .command('chroma')
+  .description('Manage ChromaDB vector store directly');
+
+// chroma update
+chromaCmd
+  .command('update')
+  .description('Update an existing document in ChromaDB')
+  .requiredOption('--id <id>', 'Document ID')
+  .requiredOption('--document <text>', 'New document text')
+  .option('--metadata <json>', 'Metadata as JSON string')
+  .action(updateDocumentCommand);
+
+// chroma delete
+chromaCmd
+  .command('delete')
+  .description('Delete a document from ChromaDB')
+  .requiredOption('--id <id>', 'Document ID')
+  .action(deleteDocumentCommand);
+
+// chroma list
+chromaCmd
+  .command('list')
+  .description('List all documents in ChromaDB')
+  .option('--limit <number>', 'Maximum number of documents to show', '10')
+  .action(listDocumentsCommand);
 
 // Parse and execute
 program.parse();

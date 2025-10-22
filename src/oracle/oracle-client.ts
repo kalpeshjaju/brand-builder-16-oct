@@ -21,6 +21,20 @@ interface SearchArgs {
   n_results?: number;
 }
 
+interface UpdateDocumentArgs {
+  id: string;
+  document: string;
+  metadata: Record<string, unknown>;
+}
+
+interface DeleteDocumentArgs {
+  id: string;
+}
+
+interface ListDocumentsArgs {
+  limit?: number;
+}
+
 export class OracleClient {
   private bridge: PythonBridge;
 
@@ -69,12 +83,31 @@ export class OracleClient {
       query: args.query,
       n_results: 3,
     });
-    
+
     if (results?.documents && Array.isArray(results.documents[0])) {
       return results.documents[0].slice(0, args.maxTokens ? 1 : 3).join('\n\n');
     }
-    
+
     return '';
+  }
+
+  public async updateDocument(args: UpdateDocumentArgs): Promise<{ status: string; id: string }> {
+    return this.bridge.sendCommand('update', args);
+  }
+
+  public async deleteDocument(args: DeleteDocumentArgs): Promise<{ status: string; id: string }> {
+    return this.bridge.sendCommand('delete', args);
+  }
+
+  public async listDocuments(args: ListDocumentsArgs = {}): Promise<{
+    status: string;
+    results: {
+      ids: string[];
+      documents: string[];
+      metadatas: Record<string, unknown>[];
+    };
+  }> {
+    return this.bridge.sendCommand('list', args);
   }
 
   public close(): void {
